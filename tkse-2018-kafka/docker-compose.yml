@@ -179,7 +179,7 @@ services:
     ports:
       - "8002:8000"
     environment:
-      SCHEMAREGISTRY_URL: 'http://${DOCKER_HOST_IP}:8081'
+      SCHEMAREGISTRY_URL: 'http://40.91.195.92:8081'
     restart: always
 
   kafka-manager:
