@@ -99,7 +99,7 @@
     				<version>4.0.0</version>
 				<configuration>
 					<schemaRegistryUrls>
-						<param>http://40.91.195.92:8081</param>
+						<param>http://localhost:8081</param>
 					</schemaRegistryUrls>
 					<subjects>
 						<sensor-group-1-v1-value>src/main/avro/SensorValue-v1.avsc</sensor-group-1-v1-value>
