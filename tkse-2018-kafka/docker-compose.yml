@@ -85,7 +85,7 @@ services:
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema_registry
       SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'PLAINTEXT://broker-1:9092,PLAINTEXT://broker-2:9093'
-      SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
+#      SCHEMA_REGISTRY_LISTENERS: "http://0.0.0.0:8081"
     restart: always
 
   connect:
