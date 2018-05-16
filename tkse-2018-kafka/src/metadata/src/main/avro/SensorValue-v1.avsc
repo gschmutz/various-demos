@@ -1,7 +1,7 @@
 {
   "type" : "record",
   "namespace" : "de.tkse.sample",
-  "name" : "SensorGroup_1",
+  "name" : "SensorGroupOne",
   "description" : "the representation of sensor group 1",
   "fields" : [
 	 { "name": "value_1", 

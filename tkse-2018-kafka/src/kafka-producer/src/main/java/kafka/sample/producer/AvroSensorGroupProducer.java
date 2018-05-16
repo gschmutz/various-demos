@@ -19,7 +19,7 @@ import ch.trivadis.sample.twitter.avro.v1.TwitterStatusUpdate;
 
 public class AvroSensorGroupProducer {
 	private Producer<String, TwitterStatusUpdate> producer = null;
-	private String kafkaTopicTweetStatus = "tweet";
+	private String kafkaTopicSensorGroupOne = "sensor-group-1-v1";
 
 	private Producer<String, TwitterStatusUpdate> connect() {
 		Producer<String, TwitterStatusUpdate> producer = null;
@@ -33,21 +33,21 @@ public class AvroSensorGroupProducer {
 	    props.put("schema.registry.url", "http://localhost:8081");
 
 		try {
-    		producer = new KafkaProducer<String, TwitterStatusUpdate>(props);
+    		producer = new KafkaProducer<String, SensorGroupOne>(props);
     	} catch (Exception e) {
     		e.printStackTrace();
     	}
     	return producer;
 	}
 	
-	public void produce(TwitterStatusUpdate status) {
+	public void produce(SensorGroupOne value) {
         final Random rnd = new Random();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        DatumWriter<TwitterStatusUpdate> writer = new SpecificDatumWriter<TwitterStatusUpdate>(TwitterStatusUpdate.class);
+        DatumWriter<SensorGroupOne> writer = new SpecificDatumWriter<TwitterStatusUpdate>(SensorGroupOne.class);
         Encoder encoder = EncoderFactory.get().binaryEncoder(out, null);
         try {
-			writer.write(status, encoder);
+			writer.write(value, encoder);
 	        encoder.flush();
 	        out.close();
 		} catch (IOException ioe) {
@@ -60,7 +60,7 @@ public class AvroSensorGroupProducer {
         
         Integer key = rnd.nextInt(255);
         
-        ProducerRecord<String, TwitterStatusUpdate> record = new ProducerRecord<String, TwitterStatusUpdate>(kafkaTopicTweetStatus, null, status);
+        ProducerRecord<String, SensorGroupOne> record = new ProducerRecord<String, SensorGroupOne>(kafkaTopicSensorGroupOne, null, status);
 
         if (producer !=null) {
         	try {
@@ -73,6 +73,13 @@ public class AvroSensorGroupProducer {
         	
         }
 		
+	}
+
+	public static void main(String[] args) {
+		AvroSensorGroupProducer producer = new AvroSensorGroupProducer();
+		
+		SensorGroupOne value = new SensorGroup(0.1d,0.2d);
+		producer.produce(value);
 	}
 
 }
