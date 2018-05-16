@@ -40,12 +40,13 @@ public class AvroSensorGroupProducer {
     	return producer;
 	}
 	
-	public void produce(SensorGroupOne value) {
+	public void produce(SensorGroupOne value) throws IOException {
         final Random rnd = new Random();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         DatumWriter<SensorGroupOne> writer = new SpecificDatumWriter<SensorGroupOne>(SensorGroupOne.class);
-        Encoder encoder = EncoderFactory.get().binaryEncoder(out, null);
+        //Encoder encoder = EncoderFactory.get().binaryEncoder(out, null);
+        Encoder encoder = EncoderFactory.get().jsonEncoder(SensorGroupOne.getClassSchema(), out);
         try {
 			writer.write(value, encoder);
 	        encoder.flush();
@@ -79,7 +80,11 @@ public class AvroSensorGroupProducer {
 		AvroSensorGroupProducer producer = new AvroSensorGroupProducer();
 		
 		SensorGroupOne value = new SensorGroupOne(0.1d,0.2d);
-		producer.produce(value);
+		try {
+			producer.produce(value);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 
 }
