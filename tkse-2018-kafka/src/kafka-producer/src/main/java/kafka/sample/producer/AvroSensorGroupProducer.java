@@ -45,7 +45,7 @@ public class AvroSensorGroupProducer {
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         DatumWriter<SensorGroupOne> writer = new SpecificDatumWriter<SensorGroupOne>(SensorGroupOne.class);
-        Encoder encoder = EncoderFactory.get().binaryEncoder(out, null);
+        //Encoder encoder = EncoderFactory.get().binaryEncoder(out, null);
         //Encoder encoder = EncoderFactory.get().jsonEncoder(SensorGroupOne.getClassSchema(), out);
         
         /*
