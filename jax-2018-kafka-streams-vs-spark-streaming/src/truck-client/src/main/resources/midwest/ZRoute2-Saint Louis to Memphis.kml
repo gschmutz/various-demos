@@ -1,0 +1,100 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<kml xmlns='http://www.opengis.net/kml/2.2'>
+	<Document>
+		<name>Saint Louis to Memphis Route2</name>
+		
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 1</name>
+				<Point>
+					<coordinates>-90.15380859375,38.61687046392973,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 2</name>
+				<Point>
+					<coordinates>-90.3515625,38.42777351132905,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 3</name>
+				<Point>
+					<coordinates>-90.24169921875,37.996162679728116,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 4</name>
+				<Point>
+					<coordinates>-90.0,37.71859032558816,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 5</name>
+				<Point>
+					<coordinates>-89.71435546875,37.47485808497102,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 6</name>
+				<Point>
+					<coordinates>-89.560546875,37.19533058280065,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 7</name>
+				<Point>
+					<coordinates>-89.53857421875,36.84446074079564,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 8</name>
+				<Point>
+					<coordinates>-89.6484375,36.36822190085111,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 9</name>
+				<Point>
+					<coordinates>-89.80224609375,35.94243575255426,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 10</name>
+				<Point>
+					<coordinates>-90.06591796875,35.67514743608467,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 11</name>
+				<Point>
+					<coordinates>-90.24169921875,35.35321610123821,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 12</name>
+				<Point>
+					<coordinates>-90.06591796875,35.101934057246055,0.0</coordinates>
+				</Point>
+			</Placemark>
+		<Style id='icon-503-DB4436'>
+			<IconStyle>
+				<color>ff3644DB</color>
+				<scale>1.1</scale>
+				<Icon>
+					<href>http://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+				</Icon>
+			</IconStyle>
+		</Style>
+	</Document>
+</kml>

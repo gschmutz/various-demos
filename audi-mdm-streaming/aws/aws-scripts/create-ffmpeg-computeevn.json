@@ -1,0 +1,15 @@
+{ "computeEnvironmentName": "audi-mdm-on-demand",
+  "type": "MANAGED", 
+  "state": "ENABLED", 
+  "computeResources": { "type": "EC2", 
+    "minvCpus": 0,
+    "maxvCpus": 10,
+    "desiredvCpus": 1, 
+    "instanceTypes": [ "m3" ], 
+    "subnets": [ "subnet-31d3f758", "subnet-93b386d9", "subnet-ae473cd5"], 
+    "securityGroupIds": [ "sg-10809379" ],
+    "ec2KeyPair": "SparkCluster",
+    "instanceRole": "arn:aws:iam::663559919114:instance-profile/ecsInstanceRole"
+  },
+  "serviceRole": "arn:aws:iam::663559919114:role/service-role/AWSBatchServiceRole" 
+}

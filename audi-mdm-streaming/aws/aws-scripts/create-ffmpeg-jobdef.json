@@ -1,0 +1,18 @@
+{
+    "jobDefinitionName": "ffmpeg_job",
+    "type": "container",
+    "parameters": {
+        "inputFileName": "s3://inputFileName.mp4"
+    },
+    "containerProperties": {
+        "image": "663559919114.dkr.ecr.eu-central-1.amazonaws.com/trivadis/ffmpeg",
+        "vcpus": 1,
+        "memory": 1000,
+        "command": [],
+        "jobRoleArn": "arn:aws:iam::663559919114:role/audi-ecs-role",
+        "readonlyRootFilesystem": false,
+        "privileged": true,
+        "user": "nobody"
+    },
+    "retryStrategy": { "attempts": 3 }
+}

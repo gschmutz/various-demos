@@ -1,0 +1,11 @@
+{
+  "jobQueueName": "audi-mds-job-queue",
+  "state": "ENABLED",
+  "priority": 1,
+  "computeEnvironmentOrder": [
+    {
+      "order": 1,
+      "computeEnvironment": "audi-mdm-on-demand"
+    }
+  ]
+}

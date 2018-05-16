@@ -1,0 +1,66 @@
+kafka-console-producer --broker-list broker-1:9092 --topic V3.7.0.3
+
+Variant{value="33.44"}
+
+kafka-console-consumer --bootstrap-server broker-1:9092 --topic all-stream
+
+
+kafka-console-producer --broker-list 40.68.28.207:9092 --topic V.0.3.7.0.5
+
+{"value":{"value":19.064072},"timestamp":1520601050}
+
+export DOCKER_HOST_IP=192.168.69.136
+cd /mnt/hgfs/git/gschmutz/demos/demos/tkse-2018-kafka
+docker-compose exec ksql-cli ksql-cli local --bootstrap-server broker-1:9092
+
+CREATE STREAM all_stream_s \
+  (value VARCHAR, \
+   timestamp VARCHAR, \
+   name VARCHAR) \
+  WITH (kafka_topic='all-stream', \
+        value_format='JSON');
+
+SELECT * FROM all_stream_s;
+
+===================================
+
+spark-shell --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.2.0
+
+import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.types.StringType
+import org.apache.spark.sql.types.DoubleType
+import org.apache.spark.sql.types.TimestampType
+
+val schema = new StructType() 
+  .add("value",  DoubleType) 
+  .add("timestamp", TimestampType) 
+  .add("name", StringType) 
+
+ 
+val rawDf = spark
+  .readStream
+  .format("kafka")
+  .option("kafka.bootstrap.servers", "broker-1:9092")
+  .option("subscribe", "all-stream")
+  .load()
+
+val jsonDf = rawDf.select($"value" cast "string" as "json")
+            .select(from_json($"json", schema) as "data")
+            .select("data.*")
+
+val jsonFilteredDf = jsonDf.where("name ='V.0.3.7.0.5'")
+
+val windowedCounts = jsonFilteredDf
+            .withWatermark("timestamp","5 minutes")
+            .groupBy(
+                 window($"timestamp", "2 minute"),
+                $"name")
+            .count()
+
+
+import org.apache.spark.sql.streaming.{OutputMode, Trigger}
+import scala.concurrent.duration._
+val q = windowedCounts.writeStream
+    .format("console")
+    .start()
+

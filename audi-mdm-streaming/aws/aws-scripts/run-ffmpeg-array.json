@@ -1,0 +1,17 @@
+{
+   "arrayProperties": { 
+      "size": 2
+   },
+   "containerOverrides": { 
+      "command": ["Ref::inputFileName", "Ref::inputFileNames"],
+      "memory": 1000,
+      "vcpus": 1
+   },
+   "jobDefinition": "ffmpeg_job:6",
+   "jobName": "ffmpeg",
+   "jobQueue": "audi-mds-queue",
+   "parameters": { "inputFileName": "s3://gus-audi-test/videos/input/etl.mp4", "inputFileNames" : "file1,file2"},
+   "retryStrategy": { 
+      "attempts": 1
+   }
+}

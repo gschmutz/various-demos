@@ -1,0 +1,49 @@
+version: '2'
+
+# We're going to rely on an externally created network for our services to get around the 
+# problem with docker compose using underscores in network and container names (and thus causing
+# problems with invalid hostnames). See the comment on 34e78d05af2a287030598e545341ada36e9d24c 
+# for more details. You can create this network by running: 'docker network create graph'
+networks:
+  graph:
+    external: true
+
+services:
+  # One DSE node
+  dse:
+    image: luketillman/datastax-enterprise:5.1.4
+    ports:
+    - "9042:9042"
+    - "8081:8081"
+    # Tell DSE to start a graph node
+    command: [ -g -s ]
+    cap_add:
+    - IPC_LOCK
+    ulimits:
+      memlock: -1
+    # Use the externally created network (see note above)
+    networks:
+    - graph
+    # Specify the container name explicitly to avoid getting underscores (see note above)
+    container_name: dse
+   
+  # One instance of DataStax Studio
+  studio:
+    image: luketillman/datastax-studio:2.0.0
+    ports:
+    # The Web UI exposed to our host
+    - "9091:9091"
+    depends_on:
+    - dse
+    # Use the externally created network (see note above)
+    networks:
+    - graph
+
+  graph-loader:
+    image: trivadisbds/dse-graphloader:5.1.4
+    depends_on:
+    - dse
+    networks:
+    - graph
+    volumes:
+    - /home/cas/workspace/graph-examples:/graph-examples

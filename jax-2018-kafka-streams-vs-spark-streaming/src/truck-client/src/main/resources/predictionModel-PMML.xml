@@ -1,0 +1,38 @@
+<PMML xmlns="http://www.dmg.org/PMML-4_1" version="4.1">
+    <Header copyright="DMG.org"/>
+    <DataDictionary numberOfFields="8">
+        <DataField name="Certification" optype="continuous" dataType="double"/>
+        <DataField name="WagePlan" optype="continuous" dataType="double"/>
+        <DataField name="FatigueByHours" optype="continuous" dataType="double"/>
+        <DataField name="FatigueByMiles" optype="continuous" dataType="double"/>
+        <DataField name="FoggyWeather" optype="continuous" dataType="double"/>
+        <DataField name="RainyWeather" optype="continuous" dataType="double"/>
+        <DataField name="WindyWeather" optype="continuous" dataType="double"/>
+        <DataField name="ViolationPredicted" optype="categorical" dataType="integer">
+            <Value value="0"/>
+            <Value value="1"/>
+        </DataField>
+    </DataDictionary>
+    <RegressionModel modelName="Binary Classification for Truck Demo" functionName="classification" algorithmName="logisticRegression" normalizationMethod="softmax" targetFieldName="ViolationPredicted">
+        <MiningSchema>
+            <MiningField name="Certification"/>
+            <MiningField name="WagePlan"/>
+            <MiningField name="FatigueByHours"/>
+            <MiningField name="FatigueByMiles"/>
+            <MiningField name="FoggyWeather"/>
+            <MiningField name="RainyWeather"/>
+            <MiningField name="WindyWeather"/>
+            <MiningField name="ViolationPredicted" usageType="predicted"/>
+        </MiningSchema>
+        <RegressionTable targetCategory="yes" intercept="0">
+            <NumericPredictor name="Certification" coefficient="-0.5484931520986547"/>
+            <NumericPredictor name="WagePlan" coefficient="0.32167608426097444"/>
+            <NumericPredictor name="FatigueByHours" coefficient="-0.11878325692728164"/>
+            <NumericPredictor name="FatigueByMiles" coefficient="-0.05352068317534395"/>
+            <NumericPredictor name="FoggyWeather" coefficient="0.7557630499793003"/>
+            <NumericPredictor name="RainyWeather" coefficient="0.5753110023672502"/>
+            <NumericPredictor name="WindyWeather" coefficient="6.491968184728098E-4"/>
+        </RegressionTable>
+        <RegressionTable targetCategory="no" intercept="0"/>
+    </RegressionModel>
+</PMML>

@@ -1,0 +1,9 @@
+{
+	"firstName"	: "Peter",
+	"lastName"	: "Muster",
+	"street" : "Somestreet 10",
+	"city"  : "99934 Somecity",
+	"hobbies"	: "icehockey",
+	"birthday" : "2017-02-16",
+	"language"	: "English"
+}

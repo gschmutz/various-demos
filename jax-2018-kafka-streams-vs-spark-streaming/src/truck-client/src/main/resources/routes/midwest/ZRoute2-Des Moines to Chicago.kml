@@ -1,0 +1,162 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<kml xmlns='http://www.opengis.net/kml/2.2'>
+	<Document>
+		<name>Des Moines to Chicago Route 2</name>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 1</name>
+			<Point>
+				<coordinates>-93.58154296875,41.62365539068639,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 2</name>
+			<Point>
+				<coordinates>-93.36181640625,41.68932225997044,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 3</name>
+			<Point>
+				<coordinates>-93.043212890625,41.713930073371294,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 4</name>
+			<Point>
+				<coordinates>-92.735595703125,41.75492216766298,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 5</name>
+			<Point>
+				<coordinates>-92.39501953125,41.77950486590359,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 6</name>
+			<Point>
+				<coordinates>-92.186279296875,41.73852846935917,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 7</name>
+			<Point>
+				<coordinates>-91.944580078125,41.705728515237524,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 8</name>
+			<Point>
+				<coordinates>-91.593017578125,41.69752591075902,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 9</name>
+			<Point>
+				<coordinates>-91.241455078125,41.672911819602085,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 10</name>
+			<Point>
+				<coordinates>-90.823974609375,41.65649719441145,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 11</name>
+			<Point>
+				<coordinates>-90.63720703125,41.5579215778042,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 12</name>
+			<Point>
+				<coordinates>-90.19775390625,41.590796851056005,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 13</name>
+			<Point>
+				<coordinates>-89.879150390625,41.77131167976406,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 14</name>
+			<Point>
+				<coordinates>-89.6044921875,41.7631174470059,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 15</name>
+			<Point>
+				<coordinates>-89.285888671875,41.85319643776675,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 16</name>
+			<Point>
+				<coordinates>-89.033203125,41.91862886518304,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 17</name>
+			<Point>
+				<coordinates>-88.956298828125,42.25291778330197,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 18</name>
+			<Point>
+				<coordinates>-88.6376953125,42.21224516288584,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 19</name>
+			<Point>
+				<coordinates>-88.406982421875,42.114523952464246,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 20</name>
+			<Point>
+				<coordinates>-88.0224609375,42.04113400940809,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Placemark>
+			<styleUrl>#icon-503-DB4436</styleUrl>
+			<name>Point 21</name>
+			<Point>
+				<coordinates>-87.659912109375,41.89409955811395,0.0</coordinates>
+			</Point>
+		</Placemark>
+		<Style id='icon-503-DB4436'>
+			<IconStyle>
+				<color>ff3644DB</color>
+				<scale>1.1</scale>
+				<Icon>
+					<href>http://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+				</Icon>
+			</IconStyle>
+		</Style>
+	</Document>
+</kml>

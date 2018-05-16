@@ -1,0 +1,278 @@
+
+================================ Infrastructure ======================================
+
+export DOCKER_HOST_IP=192.168.69.135
+export SAMPLE_HOME=/mnt/hgfs/git/gschmutz/demos/demos/jax-2018-kafka-streams-vs-spark-streaming
+
+cd $SAMPLE_HOME/docker
+cd $SAMPLE_HOME/src
+
+docker-compose up -d
+
+docker-compose logs -f
+
+================================ Kafka Topics ======================================
+
+docker exec -ti docker_broker-1_1 bash
+
+kafka-topics --zookeeper zookeeper:2181 --list
+kafka-topics --zookeeper zookeeper:2181 --create --topic truck_position --partitions 8 --replication-factor 2
+kafka-topics --zookeeper zookeeper:2181 --create --topic dangerous_driving_kafka --partitions 8 --replication-factor 2
+kafka-topics --zookeeper zookeeper:2181 --create --topic dangerous_driving_spark --partitions 8 --replication-factor 2
+kafka-topics --zookeeper zookeeper:2181 --create --topic count_by_event_type_kafka --partitions 8 --replication-factor 2
+kafka-topics --zookeeper zookeeper:2181 --create --topic count_by_event_type_spark --partitions 8 --replication-factor 2
+
+kafka-topics --zookeeper zookeeper:2181 --create --topic trucking_driver --partitions 8 --replication-factor 2 --config cleanup.policy=compact --config segment.ms=100 --config delete.retention.ms=100 --config min.cleanable.dirty.ratio=0.01
+
+================================ Producer Kafka ======================================
+
+cd $SAMPLE_HOME/src/truck-client
+mvn exec:java -Dexec.args="-s KAFKA -f JSON"
+
+================================ Console Consumer ======================================
+
+docker exec -ti docker_broker-1_1 bash
+ 
+kafka-console-consumer --bootstrap-server broker-1:9092 --topic truck_position
+
+================================ Driver RDBMS Table ======================================
+
+
+docker exec -ti docker_db_1 bash
+psql -d sample -U sample
+
+DROP TABLE driver;
+CREATE TABLE driver (id BIGINT, first_name CHARACTER VARYING(45), last_name CHARACTER VARYING(45), available CHARACTER VARYING(1), birthdate DATE, last_update TIMESTAMP);
+ALTER TABLE driver ADD CONSTRAINT driver_pk PRIMARY KEY (id);
+
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (10,'Diann', 'Butler', 'Y', '10-JUN-68', CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (12,'Laurence', 'Lindsey', 'Y', '19-MAY-78' ,CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (13,'Pam', 'Harrington', 'Y','10-JUN-68' ,CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (14,'Brooke', 'Ferguson', 'Y','10-DEC-66' ,CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (15,'Clint','Hudson', 'Y','5-JUN-75' ,CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (16,'Ben','Simpson', 'Y','11-SEP-74' ,CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (17,'Frank','Bishop', 'Y','3-OCT-60' ,CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (18,'Trevor','Hines', 'Y','23-FEB-78' ,CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (19,'Christy','Stephens', 'Y','11-JAN-73' ,CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (20,'Clarence','Lamb', 'Y','15-NOV-77' ,CURRENT_TIMESTAMP);
+
+
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (11,'Micky', 'Isaacson', 'Y', '31-AUG-72' ,CURRENT_TIMESTAMP);
+
+
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (21,'Lila', 'Page', 'Y', '5-APR-77', CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (22,'Patricia', 'Coleman', 'Y', '11-AUG-80' ,CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (23,'Jeremy', 'Olson', 'Y', '13-JUN-82', CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (24,'Walter', 'Ward', 'Y', '24-JUL-85', CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (25,'Kristen', ' Patterson', 'Y', '14-JUN-73', CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (26,'Jacquelyn', 'Fletcher', 'Y', '24-AUG-85', CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (27,'Walter', '  Leonard', 'Y', '12-SEP-88', CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (28,'Della', ' Mcdonald', 'Y', '24-JUL-79', CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (29,'Leah', 'Sutton', 'Y', '12-JUL-75', CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (30,'Larry', 'Jensen', 'Y', '14-AUG-83', CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (31,'Rosemarie', 'Ruiz', 'Y', '22-SEP-80', CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (32,'Shaun', ' Marshall', 'Y', '22-JAN-85', CURRENT_TIMESTAMP);
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (33,'Lars', ' Smith', 'Y', '22-JAN-85', CURRENT_TIMESTAMP);
+
+UPDATE driver SET available = 'N', last_update = CURRENT_TIMESTAMP  WHERE id = 21;
+UPDATE driver SET available = 'N', last_update = CURRENT_TIMESTAMP  WHERE id = 14;
+
+================================ Kafka Connect  ======================================
+
+
+
+================================ Consume  ======================================
+
+docker exec -ti docker_broker-1_1 bash
+
+kafka-console-consumer --bootstrap-server broker-1:9092 --topic trucking_driver --from-beginning
+kafka-console-consumer --bootstrap-server broker-1:9092 --topic dangerous_driving_spark 
+kafka-console-consumer --bootstrap-server broker-1:9092 --topic dangerous_driving_kafka 
+
+INSERT INTO driver (id, first_name, last_name, available, birthdate, last_update) VALUES (11,'Micky', 'Isaacson', 'Y', '31-AUG-72' ,CURRENT_TIMESTAMP);
+
+================================ Kafka Streams  ======================================
+
+In Eclipse within the Linux VM, start programm
+
+================================ Spark Streaming  ======================================
+
+docker exec -ti spark-master bash
+
+/spark/bin/spark-shell --driver-class-path postgresql-42.2.2.jar --jars postgresql-42.2.2.jar --packages org.apache.spark:spark-sql-kafka-0-10_2.11:2.2.0
+
+oder in Zeppelin mit: org.apache.spark:spark-sql-kafka-0-10_2.11:2.2.0
+
+
+import org.apache.spark.sql.types.StructType
+import org.apache.spark.sql.types.StringType
+import org.apache.spark.sql.types.DoubleType
+import org.apache.spark.sql.types.LongType
+import org.apache.spark.sql.types.TimestampType
+
+val truckPositionSchema = new StructType() 
+  .add("timestamp",  TimestampType) 
+  .add("truckId", LongType) 
+  .add("driverId", LongType) 
+  .add("routeId", LongType) 
+  .add("eventType", StringType) 
+  .add("latitude", DoubleType) 
+  .add("longitude", DoubleType) 
+  .add("correlationId", StringType) 
+
+val rawDf = spark
+  .readStream
+  .format("kafka")
+  .option("kafka.bootstrap.servers", "broker-1:9092")
+  .option("subscribe", "truck_position")
+  .load()
+
+val opts = Map(
+  "url" -> "jdbc:postgresql://db/sample?user=sample&password=sample",
+  "dbtable" -> "driver")
+val driverRawDf = spark.
+  read.
+  format("jdbc").
+  options(opts).
+  load()  
+val driverDf = driverRawDf.selectExpr("id as driverId", "first_name as firstName", "last_name as lastName")
+
+val jsonDf = rawDf.select($"value" cast "string" as "json")
+            .select(from_json($"json", truckPositionSchema) as "data")
+            .selectExpr("data.*", "cast(cast (data.timestamp as double) / 1000 as timestamp) as eventTime")
+
+val jsonFilteredDf = jsonDf.where("eventType !='Normal'")         
+
+val jsonTruckPlusDriverDf = jsonFilteredDf.join(driverDf, Seq("driverId"), "left")   
+
+val windowedCountsDf = jsonFilteredDf
+            .withWatermark("eventTime","10 minutes")
+            .groupBy(
+                 window($"eventTime", "1 minutes","30 seconds"),
+                $"eventType")
+            .count()
+
+val q = jsonTruckPlusDriverDf
+  .selectExpr("to_json(struct(*)) AS value")
+  .writeStream
+  .format("kafka")
+  .option("kafka.bootstrap.servers", "broker-1:9092")
+  .option("topic","test")
+  .option("checkpointLocation", "/tmp")
+  .start()    
+
+val q = jsonTruckPlusDriverDf.writeStream
+    .outputMode("append")
+    .format("console")
+    .start()
+
+val q = windowedCountsDf.writeStream
+    .format("memory")
+    .queryName("countByDriver")
+    .start()
+
+=====================    
+
+import org.apache.spark.sql.streaming.{OutputMode, Trigger}
+import scala.concurrent.duration._
+val q = windowedCountsDf.writeStream
+    .format("memory")
+    .queryName("countByDriver")
+    .start()
+         
+
+val opts = Map(
+  "url" -> "jdbc:postgresql://db/sample?user=sample&password=sample",
+  "dbtable" -> "driver")
+val df = spark.
+  read.
+  format("jdbc").
+  options(opts).
+  load
+
+df.printSchema
+
+df.show(truncate=false)  
+
+
+================================ Dangerous Driving with Kafka KQL ======================================
+
+export DOCKER_HOST_IP=192.168.69.135
+cd /mnt/hgfs/git/gschmutz/demos/demos/ukoug-2017/docker
+docker-compose exec ksql-cli ksql-cli local --bootstrap-server broker-1:9092
+
+
+CREATE STREAM truck_position_s \
+  (timestamp BIGINT, \
+   truckId BIGINT, \
+   driverId BIGINT, \
+   routeId BIGINT, \
+   eventType VARCHAR, \
+   latitude DOUBLE, \
+   longitude DOUBLE, \
+   correlationid VARCHAR) \
+  WITH (kafka_topic='truck_position', \
+        value_format='JSON');
+
+SELECT * FROM truck_position_s;
+SELECT * FROM truck_position_s WHERE eventtype != 'Normal';
+
+DROP STREAM dangerous_driving_s;
+CREATE STREAM dangerous_driving_s \
+  WITH (kafka_topic='dangerous_driving_ksql', \
+        value_format='JSON') \
+AS SELECT * FROM truck_position_s \
+WHERE eventtype != 'Normal';
+
+DESCRIBE dangerous_driving_s;        
+
+select * from dangerous_driving_s;
+
+docker exec -ti docker_broker-1_1 bash
+
+kafka-console-consumer --bootstrap-server broker-1:9092 --topic dangerous_driving
+
+
+
+================================ Kafka KQL ======================================
+
+export DOCKER_HOST_IP=192.168.69.137
+cd /mnt/hgfs/git/gschmutz/demos/demos/ukoug-2017/docker
+docker-compose exec ksql-cli ksql-cli local --bootstrap-server broker-1:9092
+
+set 'commit.interval.ms'='5000';
+set 'cache.max.bytes.buffering'='10000000';
+set 'auto.offset.reset'='earliest';
+
+DROP TABLE driver_t;
+CREATE TABLE driver_t  \
+   (id BIGINT,  \
+   first_name VARCHAR, \
+   last_name VARCHAR, \
+   available VARCHAR, \
+   birthdate VARCHAR) \
+  WITH (kafka_topic='trucking_driver', \
+        value_format='JSON');
+
+SELECT * FROM driver_t;
+
+--Join using a STREAM
+DROP STREAM dangerous_driving_and_driver_s;
+CREATE STREAM dangerous_driving_and_driver_s  \
+  WITH (kafka_topic='dangerous_driving_and_driver_s', \
+        value_format='JSON') \
+AS SELECT driverid, first_name, last_name, truckid, routeid,routename ,eventtype \
+FROM dangerous_driving_s \
+LEFT JOIN driver_t \
+ON dangerous_driving_s.driverid = driver_t.id;
+
+
+SELECT * FROM dangerous_driving_and_driver_s;
+
+SELECT * FROM dangerous_driving_and_driver_s WHERE driverid = 11;
+
+================================ More analytics ======================================
+
+select eventtype, count(*) from dangerous_driving_and_driver_s window tumbling (size 20 seconds) group by eventtype;
+
+select first_name, last_name, eventtype, count(*) from dangerous_driving_and_driver_s window tumbling (size 20 seconds) group by first_name, last_name, eventtype;
