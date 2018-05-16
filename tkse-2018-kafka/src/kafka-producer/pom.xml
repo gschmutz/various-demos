@@ -108,7 +108,7 @@
 					</execution>
 				</executions>
 				<configuration>
-					<mainClass>kafka.sample.TwitterToKafka</mainClass>
+					<mainClass>kafka.sample.producer.AvroSensorGroupProducer</mainClass>
 					<arguments>
 					</arguments>
 				</configuration>
