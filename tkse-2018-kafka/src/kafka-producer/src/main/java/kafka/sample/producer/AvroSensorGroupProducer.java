@@ -15,14 +15,14 @@ import org.apache.avro.io.Encoder;
 import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.specific.SpecificDatumWriter;
 
-import ch.trivadis.sample.twitter.avro.v1.TwitterStatusUpdate;
+import de.tkse.sample.SensorGroupOne;
 
 public class AvroSensorGroupProducer {
-	private Producer<String, TwitterStatusUpdate> producer = null;
+	private Producer<String, SensorGroupOne> producer = null;
 	private String kafkaTopicSensorGroupOne = "sensor-group-1-v1";
 
-	private Producer<String, TwitterStatusUpdate> connect() {
-		Producer<String, TwitterStatusUpdate> producer = null;
+	private Producer<String, SensorGroupOne> connect() {
+		Producer<String, SensorGroupOne> producer = null;
     	
 		Properties props = new Properties();
 	    props.put("bootstrap.servers", "localhost:9092");
@@ -44,7 +44,7 @@ public class AvroSensorGroupProducer {
         final Random rnd = new Random();
 
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        DatumWriter<SensorGroupOne> writer = new SpecificDatumWriter<TwitterStatusUpdate>(SensorGroupOne.class);
+        DatumWriter<SensorGroupOne> writer = new SpecificDatumWriter<SensorGroupOne>(SensorGroupOne.class);
         Encoder encoder = EncoderFactory.get().binaryEncoder(out, null);
         try {
 			writer.write(value, encoder);
@@ -60,7 +60,7 @@ public class AvroSensorGroupProducer {
         
         Integer key = rnd.nextInt(255);
         
-        ProducerRecord<String, SensorGroupOne> record = new ProducerRecord<String, SensorGroupOne>(kafkaTopicSensorGroupOne, null, status);
+        ProducerRecord<String, SensorGroupOne> record = new ProducerRecord<String, SensorGroupOne>(kafkaTopicSensorGroupOne, null, value);
 
         if (producer !=null) {
         	try {
@@ -78,7 +78,7 @@ public class AvroSensorGroupProducer {
 	public static void main(String[] args) {
 		AvroSensorGroupProducer producer = new AvroSensorGroupProducer();
 		
-		SensorGroupOne value = new SensorGroup(0.1d,0.2d);
+		SensorGroupOne value = new SensorGroupOne(0.1d,0.2d);
 		producer.produce(value);
 	}
 
