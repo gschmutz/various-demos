@@ -1,0 +1,78 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<kml xmlns='http://www.opengis.net/kml/2.2'>
+	<Document>
+		<name>Joplin to Kansas City Route 2</name>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 1</name>
+				<Point>
+					<coordinates>-94.581298828125,37.02886944696474,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 2</name>
+				<Point>
+					<coordinates>-94.46044921875,37.16031654673677,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 3</name>
+				<Point>
+					<coordinates>-94.306640625,37.309014074275915,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 4</name>
+				<Point>
+					<coordinates>-94.295654296875,37.65773212628274,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 5</name>
+				<Point>
+					<coordinates>-94.37255859375,38.004819966413194,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 6</name>
+				<Point>
+					<coordinates>-94.3505859375,38.33303882235456,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 7</name>
+				<Point>
+					<coordinates>-94.383544921875,38.66835610151509,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 8</name>
+				<Point>
+					<coordinates>-94.383544921875,38.98503278695909,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 9</name>
+				<Point>
+					<coordinates>-94.59228515625,39.0959629363055,0.0</coordinates>
+				</Point>
+			</Placemark>
+		<Style id='icon-503-DB4436'>
+			<IconStyle>
+				<color>ff3644DB</color>
+				<scale>1.1</scale>
+				<Icon>
+					<href>http://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+				</Icon>
+			</IconStyle>
+		</Style>
+	</Document>
+</kml>
