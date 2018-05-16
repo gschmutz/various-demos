@@ -14,4 +14,4 @@ mv apache-maven-$MAVEN_VERSION /usr/lib/mvn
 
 ADD ./deploy/truck-client-1.0.0.jar /truck-client.jar
 RUN sh -c 'touch /truck-client.jar'
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-Dexec.args='-s KAFKA -f JSON',"-jar","/truck-client.jar"]
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/truck-client.jar","-s KAFKA","-f JSON"]
