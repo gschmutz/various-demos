@@ -1,0 +1,16 @@
+{
+  "type" : "record",
+  "namespace" : "de.tkse.sample",
+  "name" : "SensorGroup1",
+  "description" : "the representation of sensor group 1",
+  "fields" : [
+	 { "name": "value-1", 
+	 	"doc": "value-1 of Sensor Group 1", 
+	 	"type": "double" 
+	 },
+	 { "name": "value-2", 
+	 	"doc": "value-2 of Sensor Group 2", 
+	 	"type": "double" 
+	 }
+   ]
+}
