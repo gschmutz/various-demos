@@ -102,7 +102,7 @@
 						<param>http://40.91.195.92:8081</param>
 					</schemaRegistryUrls>
 					<subjects>
-						<sensor-value-v1-value>src/main/avro/SensorValue-v1.avsc</sensor-value-v1-value>
+						<sensor-group-1-v1-value>src/main/avro/SensorValue-v1.avsc</sensor-group-1-v1-value>
 					</subjects>
 				</configuration>
 				<goals>
