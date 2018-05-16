@@ -60,7 +60,7 @@ public class AvroSensorGroupProducer {
         System.out.write(out.toByteArray());
         
         if (producer == null) {
-        	producer = connect();
+//        		producer = connect();
         }
         
         Integer key = rnd.nextInt(255);
