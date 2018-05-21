@@ -1,0 +1,47 @@
+version: '2'
+services:
+  spark-master:
+    image: bde2020/spark-master:2.3.0-hadoop2.7
+    container_name: spark-master
+    ports:
+      - "8080:8080"
+      - "7077:7077"
+    environment:
+      - INIT_DAEMON_STEP=setup_spark
+    restart: always    
+  spark-worker-1:
+    image: bde2020/spark-worker:2.3.0-hadoop2.7
+    container_name: spark-worker-1
+    depends_on:
+      - spark-master
+    ports:
+      - "8081:8081"
+    environment:
+      - "SPARK_MASTER=spark://spark-master:7077"
+    restart: always
+
+  zeppelin:
+#    image: apache/zeppelin:0.7.3
+    image: dylanmei/zeppelin
+    container_name: zeppelin
+    ports:
+      - "38080:8080"
+    environment:
+      ZEPPELIN_PORT: 8080
+      ZEPPELIN_JAVA_OPTS: >-
+        -Dspark.driver.memory=1g
+        -Dspark.executor.memory=2g
+      MASTER: local[*]      
+    ports:
+      - "38080:8080"
+    volumes:
+      - ./data:/usr/zeppelin/data
+      - ./notebooks:/usr/zeppelin/notebook
+    restart: always
+
+  jupyter:
+    image: jupyter/all-spark-notebook:latest
+    container_name: jupyter
+    ports:
+      - "8888:8888"
+    restart: always
