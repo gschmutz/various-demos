@@ -4,5 +4,4 @@
 **/.project
 **/.settings
 **/target
-/.metadata/
-nloug-2018-microservices-with-kafka/.metadata/
+**/.metadata/
