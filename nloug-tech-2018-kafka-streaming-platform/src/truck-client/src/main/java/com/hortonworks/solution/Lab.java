@@ -105,7 +105,9 @@ public class Lab {
 		}
 		sensorEventsParam.setNumberOfEvents(1000);
 		sensorEventsParam.setDelayBetweenEvents(2000);
+		System.out.println(Lab.class.getResource("/" + "routes/midwest").getPath());
 		sensorEventsParam.setRouteDirectory(Lab.class.getResource("/" + "routes/midwest").getPath());
+//		sensorEventsParam.setRouteDirectory("/mnt/hgfs/git/gschmutz/various-demos/nloug-tech-2018-kafka-streaming-platform/src/truck-client/src/main/resources/routes/midwest");
 		sensorEventsParam.setTruckSymbolSize(10000);
 		SensorEventsGenerator sensorEventsGenerator = new SensorEventsGenerator();
 		sensorEventsGenerator.generateTruckEventsStream(sensorEventsParam);
