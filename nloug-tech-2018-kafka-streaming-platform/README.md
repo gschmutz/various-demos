@@ -81,10 +81,6 @@ kafka-console-consumer --bootstrap-server broker-1:9092 --topic truck_position
 kafkacat -b streamingplatform:9092 -t truck_position
 ```
 
-```
-kafkacat -b streamingplatform -t truck_position -f 'Part-%p => %k:%s\n'
-```
-
 ### Producing to MQTT
 
 ```
@@ -236,6 +232,12 @@ then start the JDBC connector:
 ```
 cd $SAMPLE_HOME/docker
 ./configure-connect-jdbc.sh
+```
+
+To stop the connector execute the following command
+
+```
+curl -X "DELETE" "http://$DOCKER_HOST_IP:8083/connectors/jdbc-driver-source"
 ```
 
 Perform an update to see that these will be delivered
