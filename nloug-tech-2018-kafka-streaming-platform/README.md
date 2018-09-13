@@ -81,6 +81,10 @@ kafka-console-consumer --bootstrap-server broker-1:9092 --topic truck_position
 kafkacat -b streamingplatform:9092 -t truck_position
 ```
 
+```
+kafkacat -b streamingplatform -t truck_position -f 'Part-%p => %k:%s\n'
+```
+
 ### Producing to MQTT
 
 ```
