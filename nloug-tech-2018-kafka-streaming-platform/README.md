@@ -99,8 +99,15 @@ cd $SAMPLE_HOME/docker
 ./configure-connect-mqtt.sh
 ```
 
-## Streaming Filter with KSQL
+Navigate to the [Kafka Connect UI](http://streamingplatform:8003) to see the connector configured and running.
 
+You can remove the connector using the following command
+
+```
+curl -X "DELETE" "$DOCKER_HOST_IP:8083/connectors/mqtt-source"
+```
+
+## Streaming Filter with KSQL
 
 ```
 cd $SAMPLE_HOME/docker
