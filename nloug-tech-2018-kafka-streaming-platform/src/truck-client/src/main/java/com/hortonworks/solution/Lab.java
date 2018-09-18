@@ -29,6 +29,9 @@ public class Lab {
 	public static final String PORT_NAME_SHORT_FLAG = "-p";
 	public static final String PORT_NAME_LONG_FLAG = "--port";
 
+	public static final String MODE_NAME_SHORT_FLAG = "-m";
+	public static final String MODE_NAME_LONG_FLAG = "--mode";
+
 	public static final String HELP_SHORT_FLAG_1 = "-?";
 	public static final String HELP_SHORT_FLAG_2 = "-h";
 	public static final String HELP_LONG_FLAG = "--help";
@@ -43,8 +46,12 @@ public class Lab {
 	public static final String JSON = "json";
 	public static final String AVRO = "avro";
 	
+	public static final String COMBINE = "combine";
+	public static final String SPLIT = "split";
+	
 	public static String format = CSV;
 	public static String port = null;
+	public static String mode = COMBINE;
 	
 	static {
 		try {
@@ -83,6 +90,11 @@ public class Lab {
 			case PORT_NAME_LONG_FLAG:
 				port = null;
 				port = nextArg(argv, flag).toLowerCase();
+				break;				
+			case MODE_NAME_SHORT_FLAG:
+			case MODE_NAME_LONG_FLAG:
+				mode = null;
+				mode = nextArg(argv, flag).toLowerCase();
 				break;				
 			case HELP_SHORT_FLAG_1:
 			case HELP_SHORT_FLAG_2:

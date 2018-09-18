@@ -37,27 +37,22 @@ public class MQTTSensorEventCollector extends UntypedActor {
   
   @Override
   public void onReceive(Object event) throws Exception {
+	Integer eventKind = MobileEyeEvent.EVENT_KIND_BEHAVIOUR_AND_POSITION;
+	  
     MobileEyeEvent mee = (MobileEyeEvent) event;
     String eventToPass = null;
     if (Lab.format.equals(Lab.JSON)) {
-        eventToPass = mee.toJSON();
+        eventToPass = mee.toJSON(eventKind);
     } else if (Lab.format.equals(Lab.CSV)) {
-        eventToPass = mee.toCSV();
-//    } else if (Lab.format.equals(Lab.AVRO)) {
-//        eventToPass = mee.toAVRO();
+        eventToPass = mee.toCSV(eventKind);
     }
     String driverId = String.valueOf(mee.getTruck().getDriver().getDriverId());
-    
-    //System.out.println(mee.getTruck().getDriver().getDriverId() & 2);
-
-    //logger.debug("Creating event[" + eventToPass + "] for driver[" + driverId + "] in truck [" + mee.getTruck() + "]");
     
     try {
         System.out.println("Publishing message to MQTT: "+eventToPass);
         MqttMessage message = new MqttMessage(eventToPass.getBytes());
         message.setQos(qos);
         sampleClient.publish(topicName(mee.getTruck()), message);
-        //sampleClient.disconnect();
     	
     } catch (MqttException e) {
       logger.error("Error sending event[" + eventToPass + "] to MQTT topic", e);

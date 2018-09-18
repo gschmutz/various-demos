@@ -15,7 +15,8 @@ import java.util.concurrent.Future;
 
 public class KafkaSensorEventCollector extends UntypedActor {
 
-	private static final String TOPIC = "truck_position";
+	private static final String TOPIC_TRUCK_POSITION = "truck_position";
+	private static final String TOPIC_TRUCK_DRIVING_INFO = "truck_driving_info";
 	private Logger logger = Logger.getLogger(this.getClass());
 
 	private Producer<String, String> producer = null;
@@ -46,22 +47,7 @@ public class KafkaSensorEventCollector extends UntypedActor {
 
 	}
 
-	@Override
-	public void onReceive(Object event) throws Exception {
-		MobileEyeEvent mee = (MobileEyeEvent) event;
-		String eventToPass = null;
-
-		if (Lab.format.equals(Lab.JSON)) {
-	        eventToPass = mee.toJSON();
-	    } else if (Lab.format.equals(Lab.CSV)) {
-	        eventToPass = mee.toCSV();
-	    }
-		
-		String truckId = String.valueOf(mee.getTruck().getTruckId());
-
-
-		ProducerRecord<String, String> record = new ProducerRecord<String, String>(TOPIC, truckId, eventToPass);
-
+	private void sendMessage(ProducerRecord<String, String> record) {
 		if (producer != null) {
 			try {
 				Future<RecordMetadata> future = producer.send(record);
@@ -70,7 +56,47 @@ public class KafkaSensorEventCollector extends UntypedActor {
 				System.err.println(e.getMessage());
 				e.printStackTrace();
 			}
-
 		}
+	}
+	
+	@Override
+	public void onReceive(Object event) throws Exception {
+		MobileEyeEvent mee = (MobileEyeEvent) event;
+		String eventToPass = null;
+
+		String truckId = String.valueOf(mee.getTruck().getTruckId());
+
+		ProducerRecord<String, String> record = null;
+		
+		if (Lab.mode.equals(Lab.COMBINE)) {
+			if (Lab.format.equals(Lab.JSON)) {
+		        eventToPass = mee.toJSON(MobileEyeEvent.EVENT_KIND_BEHAVIOUR_AND_POSITION);
+		    } else if (Lab.format.equals(Lab.CSV)) {
+		        eventToPass = mee.toCSV(MobileEyeEvent.EVENT_KIND_BEHAVIOUR_AND_POSITION);
+		    }
+			record = new ProducerRecord<String, String>(TOPIC_TRUCK_POSITION, truckId, eventToPass);
+			sendMessage(record);
+		} else if (Lab.mode.equals(Lab.SPLIT)) {
+			if (Lab.format.equals(Lab.JSON)) {
+		        eventToPass = mee.toJSON(MobileEyeEvent.EVENT_KIND_BEHAVIOUR);
+		    } else if (Lab.format.equals(Lab.CSV)) {
+		        eventToPass = mee.toCSV(MobileEyeEvent.EVENT_KIND_BEHAVIOUR);
+		    }
+
+			record = new ProducerRecord<String, String>(TOPIC_TRUCK_DRIVING_INFO, truckId, eventToPass);
+			sendMessage(record);
+
+			if (Lab.format.equals(Lab.JSON)) {
+		        eventToPass = mee.toJSON(MobileEyeEvent.EVENT_KIND_POSITION);
+		    } else if (Lab.format.equals(Lab.CSV)) {
+		        eventToPass = mee.toCSV(MobileEyeEvent.EVENT_KIND_POSITION);
+		    }
+
+			record = new ProducerRecord<String, String>(TOPIC_TRUCK_POSITION, truckId, eventToPass);
+			sendMessage(record);
+		}
+		
+
+
 	}
 }

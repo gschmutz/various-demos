@@ -63,7 +63,7 @@ public class KafkaStreamsExampleCSV {
         final Deserializer<JsonNode> jsonDeserializer = new JsonDeserializer();
         final Serde<JsonNode> jsonSerde = Serdes.serdeFrom(jsonSerializer, jsonDeserializer);
 		
-	    final String bootstrapServers = args.length > 0 ? args[0] : "192.168.69.135:9092";
+	    final String bootstrapServers = args.length > 0 ? args[0] : "192.168.25.163:9092";
 	    final Properties streamsConfiguration = new Properties();
 	    // Give the Streams application a unique name.  The name must be unique in the Kafka cluster
 	    // against which the application is run.
@@ -85,62 +85,26 @@ public class KafkaStreamsExampleCSV {
 	    final StreamsBuilder builder = new StreamsBuilder();
 
 		/*
-		 * Prepare serdes to map to/from Json data to Java objects
-		 */
-
-		Map<String, Object> serdeProps = new HashMap<>();
-		 
-        final Serializer<TruckPosition> truckPositionSerializer = new JsonPOJOSerializer<>();
-        serdeProps.put("JsonPOJOClass", TruckPosition.class);
-        truckPositionSerializer.configure(serdeProps, false);
-
-        final Deserializer<TruckPosition> truckPositionDeserializer = new JsonPOJODeserializer<>();
-        serdeProps.put("JsonPOJOClass", TruckPosition.class);
-        truckPositionDeserializer.configure(serdeProps, false);
-        
-        final Serde<TruckPosition> truckPositionSerde = Serdes.serdeFrom(truckPositionSerializer, truckPositionDeserializer);
-
-        final Serializer<Driver> driverSerializer = new JsonPOJOSerializer<>();
-        serdeProps.put("JsonPOJOClass", Driver.class);
-        driverSerializer.configure(serdeProps, false);
-
-        final Deserializer<Driver> driverDeserializer = new JsonPOJODeserializer<>();
-        serdeProps.put("JsonPOJOClass", Driver.class);
-        driverDeserializer.configure(serdeProps, false);
-        
-        final Serde<Driver> driverSerde = Serdes.serdeFrom(driverSerializer, driverDeserializer);
-
-        final Serializer<TruckPositionDriver> truckPositionDriverSerializer = new JsonPOJOSerializer<>();
-        serdeProps.put("JsonPOJOClass", Driver.class);
-        truckPositionDriverSerializer.configure(serdeProps, false);
-
-        final Deserializer<TruckPositionDriver> truckPositionDriverDeserializer = new JsonPOJODeserializer<>();
-        serdeProps.put("JsonPOJOClass", Driver.class);
-        truckPositionDriverDeserializer.configure(serdeProps, false);
-        
-        final Serde<TruckPositionDriver> truckPositionDriverSerde = Serdes.serdeFrom(truckPositionDriverSerializer, truckPositionDriverDeserializer);
-        
-		/*
 		 * Consume TruckPositions data from Kafka topic
 		 */
 		KStream<String, String> positions = builder.stream("truck_position", Consumed.with(Serdes.String(), Serdes.String()));
 
-        
 		/*
 		 * Map CSV to JSON
 		 */
-		KStream<String, TruckPosition> positionsJSON = positions.map((key,value) -> TruckPosition.create(key, value.substring(7, value.length())));
+		KStream<String, TruckPosition> positionsCSV = positions.map((key,value) -> TruckPosition.create(key, value.substring(7, value.length())));
+		positionsCSV.print(Printed.toSysOut());
 		
 		/*
 		 * Non stateful transformation => filter out normal behaviour
 		 */
-		KStream<String, TruckPosition> filtered = positionsJSON.filter(TruckPosition::filterNonNORMAL);
+		KStream<String, TruckPosition> filtered = positionsCSV.filter(TruckPosition::filterNonNORMAL);
 		
 		filtered.map((key,value) -> new KeyValue<>(key,value.toCSV())).to("dangerous_driving");
 		
 		// just for debugging
 		// same as: xxx.foreach((key, value) -> System.out.println(key + ", " + value))
-		filtered.print(Printed.toSysOut());
+		//filtered.print(Printed.toSysOut());
 		
 		// used to be new KafkaStreams(build, streamsConfiguration)
 		final KafkaStreams streams = new KafkaStreams(builder.build(), streamsConfiguration);
