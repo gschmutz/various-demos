@@ -1,0 +1,44 @@
+{
+  "name": "kafka-connect-mqtt",
+  "version": "1.0.0-preview",
+  "title": "Kafka Connect MQTT",
+  "description": "A Kafka Connect plugin for sending and receiving data from a Mqtt broker.",
+  "owner": {
+    "username": "confluentinc",
+    "name": "Confluent, Inc."
+  },
+  "support": {
+    "summary": "This connector is not currently supported and is instead provided as a preview covered by the <a href=\"https://www.confluent.io/confluent-software-evaluation-license/\">Confluent Software Evaluation License</a>.",
+    "url": null
+  },
+  "tags": [
+    "MQTT",
+    "Internet of Things",
+    "IOT"
+  ],
+  "features": {
+    "supported_encodings": [
+      "any"
+    ],
+    "single_message_transforms": true,
+    "confluent_control_center_integration": true,
+    "kafka_connect_api": true
+  },
+  "documentation_url": "https://docs.confluent.io/current/connect/kafka-connect-mqtt/",
+  "source_url": null,
+  "docker_image": {
+    "namespace": "jcustenborder",
+    "name": "kafka-connect-docker"
+  },
+  "license": [
+    {
+      "name": "Confluent Software Evaluation License",
+      "url": "https://www.confluent.io/software-evaluation-license"
+    }
+  ],
+  "plugin_types": [
+    "source",
+    "sink"
+  ],
+  "release_date": "2018-06-21"
+}

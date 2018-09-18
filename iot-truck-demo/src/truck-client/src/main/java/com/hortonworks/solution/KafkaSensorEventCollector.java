@@ -82,6 +82,8 @@ public class KafkaSensorEventCollector extends UntypedActor {
 		    } else if (Lab.format.equals(Lab.CSV)) {
 		        eventToPass = mee.toCSV(MobileEyeEvent.EVENT_KIND_BEHAVIOUR);
 		    }
+			
+			Thread.sleep((long)(Math.random() * 1000));
 
 			record = new ProducerRecord<String, String>(TOPIC_TRUCK_DRIVING_INFO, truckId, eventToPass);
 			sendMessage(record);

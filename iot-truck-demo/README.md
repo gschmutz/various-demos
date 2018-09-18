@@ -1,4 +1,4 @@
-# Stream Processing Demo
+# IoT Truck Demo
 
 ## Prepare Environment
 
