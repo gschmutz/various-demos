@@ -53,6 +53,7 @@ list topics and create an new topic
 ```
 kafka-topics --zookeeper zookeeper:2181 --list
 kafka-topics --zookeeper zookeeper:2181 --create --topic truck_position --partitions 8 --replication-factor 2
+kafka-topics --zookeeper zookeeper:2181 --create --topic truck_driver_info --partitions 8 --replication-factor 2
 
 kafka-topics --zookeeper zookeeper:2181 --create --topic trucking_driver --partitions 8 --replication-factor 2 --config cleanup.policy=compact --config segment.ms=100 --config delete.retention.ms=100 --config min.cleanable.dirty.ratio=0.001
 ```
