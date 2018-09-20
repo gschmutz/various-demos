@@ -19,7 +19,7 @@ curl -X "POST" "$DOCKER_HOST_IP:8083/connectors" \
     "timestamp.column.name":"last_update",
     "table.whitelist":"driver",
     "validate.non.null":"false",
-    "topic.prefix":"trucking_",
+    "topic.prefix":"truck_",
     "key.converter":"org.apache.kafka.connect.storage.StringConverter",
     "key.converter.schemas.enable": "false",
     "value.converter":"org.apache.kafka.connect.json.JsonConverter",

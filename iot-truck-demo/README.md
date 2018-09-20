@@ -23,7 +23,7 @@ Add streamingplatform alias to /etc/hosts
 Start the environment using 
 
 ```
-export SAMPLE_HOME=/mnt/hgfs/git/gschmutz/various-demos/nloug-tech-2018-kafka-streaming-platform
+export SAMPLE_HOME=/mnt/hgfs/git/gschmutz/various-demos/iot-truck-demo
 cd $SAMPLE_HOME/docker
 ```
 
@@ -53,22 +53,23 @@ list topics and create an new topic
 ```
 kafka-topics --zookeeper zookeeper:2181 --list
 kafka-topics --zookeeper zookeeper:2181 --create --topic truck_position --partitions 8 --replication-factor 2
-kafka-topics --zookeeper zookeeper:2181 --create --topic truck_driver_info --partitions 8 --replication-factor 2
+kafka-topics --zookeeper zookeeper:2181 --create --topic truck_driving_info --partitions 8 --replication-factor 2
 
-kafka-topics --zookeeper zookeeper:2181 --create --topic trucking_driver --partitions 8 --replication-factor 2 --config cleanup.policy=compact --config segment.ms=100 --config delete.retention.ms=100 --config min.cleanable.dirty.ratio=0.001
+kafka-topics --zookeeper zookeeper:2181 --create --topic truck_driver --partitions 8 --replication-factor 2 --config cleanup.policy=compact --config segment.ms=100 --config delete.retention.ms=100 --config min.cleanable.dirty.ratio=0.001
 ```
 
 ## Truck Client
 
 ### Producing to Kafka
 
+Produce the IoT Truck events to topic `truck_position` and `truck_driving_info`.
 
 ```
 cd $SAMPLE_HOME/src/truck-client
-mvn exec:java -Dexec.args="-s KAFKA -f CSV"
+mvn exec:java -Dexec.args="-s KAFKA -f JSON -m SPLIT"
 ```
 
-First start the kafka-console-consumer on the Kafka topic `truck_position`:
+First start the kafka-console-consumer on the Kafka topic `truck_position` and another on `truck_driving_info`:
 
 ```
 docker exec -ti docker_broker-1_1 bash
@@ -76,20 +77,22 @@ docker exec -ti docker_broker-1_1 bash
  
 ```
 kafka-console-consumer --bootstrap-server broker-1:9092 --topic truck_position
+kafka-console-consumer --bootstrap-server broker-1:9092 --topic truck_driving_info
 ```
 
 ```
 kafkacat -b streamingplatform:9092 -t truck_position
+kafkacat -b streamingplatform:9092 -t truck_driving_info
 ```
 
 ### Producing to MQTT
 
 ```
 cd $SAMPLE_HOME/src/truck-client
-mvn exec:java -Dexec.args="-s MQTT -f CSV -p 1883"
+mvn exec:java -Dexec.args="-s MQTT -f CSV -p 1883 -m SPLIT -t millisec"
 ```
 
-in MQTT.fx suscribe to `truck/+/position`
+in MQTT.fx suscribe to `truck/+/position` and `truck/+/drving-info`
 
 ## Kafka Connect
 
@@ -108,73 +111,134 @@ You can remove the connector using the following command
 curl -X "DELETE" "$DOCKER_HOST_IP:8083/connectors/mqtt-source"
 ```
 
-## Streaming Filter with KSQL
-
-```
-cd $SAMPLE_HOME/docker
-docker exec -ti docker_broker-1_1 bash
-```
-
-create a topic where all "dangerous driving" events should be sent to
-
-```
-kafka-topics --zookeeper zookeeper:2181 --create --topic dangerous_driving_ksql --partitions 8 --replication-factor 2
-```
-
-listen on the topic
-
-```
-kafka-console-consumer --bootstrap-server broker-1:9092 --topic dangerous_driving_ksql
-```
+## Using KSQL for Stream Analytics
 
 connect to KSQL CLI
 
 ```
+cd $SAMPLE_HOME/docker
+
 docker-compose exec ksql-cli ksql http://ksql-server:8088
 ```
 
 
 ```
 show topics;
+```
+
+```
+print 'truck_position';
+print 'truck_driving_info';
+```
+
+```
+print 'truck_position' from beginning;
+print 'truck_driving_info' from beginning;
+```
+
+```
 show streams;
 show tables;
+show queries;
 ```
 
+## Streaming Query
 ```
-DROP STREAM truck_position_s;
+DROP STREAM IF EXISTS truck_driving_info_s;
 
-CREATE STREAM truck_position_s \
-  (ts VARCHAR, \
+CREATE STREAM truck_driving_info_s \
+  (timestamp VARCHAR, \
    truckId VARCHAR, \
    driverId BIGINT, \
    routeId BIGINT, \
    eventType VARCHAR, \
-   latitude DOUBLE, \
-   longitude DOUBLE, \
    correlationId VARCHAR) \
-  WITH (kafka_topic='truck_position', \
-        value_format='DELIMITED');
+  WITH (kafka_topic='truck_driving_info', \
+        value_format='JSON');
+```
 
-SELECT * FROM truck_position_s;
-SELECT * FROM truck_position_s WHERE eventType != 'Normal';
+Get info on the stream
+
+```
+DESCRIBE truck_driving_info_s;
+DESCRIBE EXTENDED truck_driving_info_s;
+```
+
+```
+SELECT * FROM truck_driving_info_s;
+```
+
+```
+ksql> SELECT * from truck_driving_info_s;
+1537349668679 | 84 | 1537349668598 | 84 | 11 | 1565885487 | Normal | -6815250318731517092
+1537349668800 | 48 | 1537349668685 | 48 | 14 | 1390372503 | Normal | -6815250318731517092
+1537349668827 | 108 | 1537349668807 | 108 | 28 | 137128276 | Normal | -6815250318731517092
+1537349668846 | 78 | 1537349668834 | 78 | 30 | 1594289134 | Normal | -6815250318731517092
+1537349668895 | 97 | 1537349668854 | 97 | 19 | 927636994 | Normal | -6815250318731517092
+1537349669104 | 19 | 1537349668905 | 19 | 26 | 1090292248 | Normal | -6815250318731517092
+```
+
+## Streaming Filter with KSQL
+
+Now let's filter on all the info messages, where the `eventType` is not normal:
+
+```
+SELECT * FROM truck_driving_info_s WHERE eventType != 'Normal';
+```
+
+Let's provide the data as a topic:
+
+create a topic where all "dangerous driving" events should be sent to
+	
+```
+cd $SAMPLE_HOME/docker
+docker exec -ti docker_broker-1_1 bash
+
+kafka-topics --zookeeper zookeeper:2181 --create --topic dangerous_driving --partitions 8 --replication-factor 2
+```
+
+listen on the topic
+
+```
+kafka-console-consumer --bootstrap-server broker-1:9092 --topic dangerous_driving
 ```
 
 ```
 DROP STREAM dangerous_driving_s;
 CREATE STREAM dangerous_driving_s \
-  WITH (kafka_topic='dangerous_driving_ksql', \
+  WITH (kafka_topic='dangerous_driving', \
         value_format='DELIMITED', \
         partitions=8) \
-AS SELECT * FROM truck_position_s \
+AS SELECT * FROM truck_driving_info_s \
 WHERE eventType != 'Normal';
 ```
 
 ```
-DESCRIBE dangerous_driving_s;        
+SELECT * FROM dangerous_driving_s;
+```
+
+## Aggregations usin KSQL
+
+```
+CREATE TABLE dangerous_driving_count \
+AS SELECT eventType, count(*) nof \
+FROM dangerous_driving_s \
+WINDOW TUMBLING (SIZE 30 SECONDS) \
+GROUP BY eventType;
 ```
 
 ```
-SELECT * FROM dangerous_driving_s;
+SELECT  TIMESTAMPTOSTRING(ROWTIME, 'yyyy-MM-dd HH:mm:ss.SSS'), eventType, nof 
+FROM dangerous_driving_count;
+```
+
+```
+CREATE TABLE dangerous_driving_count
+AS
+SELECT eventType, count(*) \
+FROM dangerous_driving_s \
+WINDOW HOPPING (SIZE 30 SECONDS, ADVANCE BY 10 SECONDS) \
+GROUP BY eventType;
 ```
 
 ## Static Driver Data
@@ -219,13 +283,13 @@ INSERT INTO "driver" ("id", "first_name", "last_name", "available", "birthdate",
 INSERT INTO "driver" ("id", "first_name", "last_name", "available", "birthdate", "last_update") VALUES (32,'Shaun', ' Marshall', 'Y', '22-JAN-85', CURRENT_TIMESTAMP);
 ```
 
-### Kafka JDBC Connector
+### Submit the Kafka Connect JDBC Connector
 
 first start the console consumer on the `trucking_driver` topic:
 
 ```
 docker exec -ti docker_broker-1_1 bash
-kafka-console-consumer --bootstrap-server broker-1:9092 --topic trucking_driver --from-beginning
+kafka-console-consumer --bootstrap-server broker-1:9092 --topic truck_driver --from-beginning
 ```
 
 then start the JDBC connector:
@@ -245,6 +309,7 @@ Perform an update to see that these will be delivered
 
 ```
 docker exec -ti docker_db_1 bash
+
 psql -d sample -U sample
 ```
 
@@ -264,7 +329,7 @@ kafka-console-consumer --bootstrap-server broker-1:9092 --topic trucking_driver 
 ```
 
 
-#
+# Create a KSQL table
 
 ```
 docker-compose exec ksql-cli ksql http://ksql-server:8088
@@ -282,7 +347,7 @@ CREATE TABLE driver_t  \
    last_name VARCHAR, \
    available VARCHAR, \
    birthdate VARCHAR) \
-  WITH (kafka_topic='trucking_driver', \
+  WITH (kafka_topic='truck_driver', \
         value_format='JSON', \
         KEY = 'id');
 ```
@@ -300,11 +365,28 @@ LEFT JOIN driver_t \
 ON dangerous_driving_s.driverId = driver_t.id;
 ```
 
+with outer join
+
 ```
---Join using a STREAM
+SELECT driverid, first_name, last_name, truckId, routeId, eventType \
+FROM dangerous_driving_s \
+LEFT OUTER JOIN driver_t \
+ON dangerous_driving_s.driverId = driver_t.id;
+```
+
+Create a Stream with the joined information
+
+```
+docker exec -ti docker_broker-1_1 bash
+kafka-console-consumer --bootstrap-server broker-1:9092 --topic dangerous_driving_and_driver --from-beginning
+```
+
+dangerous_driving_and_driver
+
+```
 DROP STREAM dangerous_driving_and_driver_s;
 CREATE STREAM dangerous_driving_and_driver_s  \
-  WITH (kafka_topic='dangerous_driving_and_driver_s', \
+  WITH (kafka_topic='dangerous_driving_and_driver', \
         value_format='JSON', partitions=8) \
 AS SELECT driverid, first_name, last_name, truckId, routeId ,eventType \
 FROM dangerous_driving_s \
@@ -321,18 +403,62 @@ SELECT * FROM dangerous_driving_and_driver_s;
 SELECT * FROM dangerous_driving_and_driver_s WHERE driverid = 11;
 ```
 
+```
+DROP STREAM truck_position_s;
+
+CREATE STREAM truck_position_s \
+  (timestamp VARCHAR, \
+   truckId VARCHAR, \
+   latitude DOUBLE, \
+   longitude DOUBLE) \
+  WITH (kafka_topic='truck_position', \
+        value_format='JSON');
+```
+
+## Stream to Stream Join
+
+```
+SELECT ddad.driverid, ddad.first_name, ddad.last_name, ddad.truckid, ddad.routeid, ddad.eventtype, tp.latitude, tp.longitude \
+FROM dangerous_driving_and_driver_s ddad \
+INNER JOIN truck_position_s tp \
+WITHIN 1 minute \
+ON tp.truckid = ddad.truckid;
+```
+
+## Current Positions
+
+CREATE TABLE truck_position_t \
+  WITH (kafka_topic='truck_position_t', \
+        value_format='JSON', \
+        KEY = 'truckid') \
+AS SELECT * FROM truck_position_s GROUP BY truckid; 
+
+
+
 ## More complex analytics in KSQL
 
 ```
-select eventType, count(*) from dangerous_driving_and_driver_s window tumbling (size 10 seconds) group by eventType;
+CREATE TABLE dangerous_driving_count \
+AS SELECT eventType, count(*) \
+FROM dangerous_driving_and_driver_s \
+WINDOW TUMBLING (SIZE 30 SECONDS) \
+GROUP BY eventType;
 ```
 
 ```
-select eventType, count(*) from dangerous_driving_and_driver_s window hopping (size 30 seconds, advance by 10 seconds) group by eventType;
+CREATE TABLE dangerous_driving_count
+AS
+SELECT eventType, count(*) \
+FROM dangerous_driving_and_driver_s \
+WINDOW HOPPING (SIZE 30 SECONDS, ADVANCE BY 10 SECONDS) \
+GROUP BY eventType;
 ```
 
 ```
-select first_name, last_name, eventType, count(*) from dangerous_driving_and_driver_s window tumbling (size 20 seconds) group by first_name, last_name, eventType;
+SELECT first_name, last_name, eventType, count(*) \
+FROM dangerous_driving_and_driver_s \
+WINDOW TUMBLING (SIZE 20 SECONDS) \
+GROUP BY first_name, last_name, eventType;
 ```
 
 
