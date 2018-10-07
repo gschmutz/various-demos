@@ -1,0 +1,22 @@
+version: "2.1"
+
+services:
+
+  adminer:
+    image: adminer
+    ports:
+      - 38080:8080
+
+  db:
+    image: mujz/pagila
+    environment:
+      - POSTGRES_PASSWORD=sample
+      - POSTGRES_USER=sample
+      - POSTGRES_DB=sample
+
+  teiid:
+    image: jboss/teiid
+    environment:
+    ports: 
+      - 8080:8080
+      - 9990:9990
