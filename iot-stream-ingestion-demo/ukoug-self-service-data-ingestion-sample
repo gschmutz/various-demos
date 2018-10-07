@@ -1,0 +1,138 @@
+
+================================ Infrastructure ======================================
+
+export DOCKER_HOST_IP=192.168.69.136
+export SAMPLE_HOME=/mnt/hgfs/git/gschmutz/demos/demos/jax-2018-stream-ingestion
+
+cd $SAMPLE_HOME/docker
+docker-compose up -d
+
+docker stop docker_lenses_1
+docker start docker_lenses_1
+
+docker-compose logs -f
+
+docker exec -ti docker_broker-1_1 bash
+
+kafka-topics --zookeeper zookeeper:2181 --list
+kafka-topics --zookeeper zookeeper:2181 --create --topic truck_position --partitions 8 --replication-factor 1
+
+
+================================ Producer MQTT ======================================
+
+cd $SAMPLE_HOME/src/truck_client
+mvn exec:java -Dexec.args="-s MQTT -f JSON -p 1883"
+mvn exec:java -Dexec.args="-s MQTT -f JSON -p 1884"
+
+in MQTT.fx suscribe to "truck/+/position"
+
+
+================================ Kafka Console Consumer ======================================
+
+docker exec -ti docker_broker-1_1 bash
+ 
+kafka-console-consumer --bootstrap-server broker-1:9092 --topic truck_position
+
+================================ NiFi ======================================
+
+http://192.168.69.136:8080/nifi
+
+
+Broker URI
+tcp://192.168.69.136:1883
+
+ClientID
+consumer1
+
+Topic Filter
+truck/+/position
+
+Message Size
+1000
+
+Kafka
+
+Kafka Brokers
+192.168.69.135:9092
+
+Topic Name
+truck_position
+
+Masking wit ReplaceText Processor
+
+Search Value
+driverId":(.*?),
+
+Replacement Value
+driverId":NN,
+
+
+
+================================ StreamSets ======================================
+
+http://192.168.69.135:18630/
+
+
+Borker URL: tcp://192.168.69.135:1883
+
+Schema Registry URI: http://192.168.69.136:8081
+Schema ID: truck-movement-v1.0
+
+
+================================ Kafka Connect MQTT ======================================
+
+cd /mnt/hgfs/git/gschmutz/demos/demos/ukoug-2017-stream-ingestion/docker
+./configure-connect-mqtt-1.sh
+
+./configure-connect-mqtt-2.sh
+
+================================ Schema Registry ======================================
+
+Schema Registry UI:
+
+http://192.168.69.136:8002
+
+
+// Register new schema
+curl -vs --stderr - -XPOST -i -H "Content-Type: application/vnd.schemaregistry.v1+json" --data '{"schema":"{\"type\":\"record\",\"name\":\"truckMovement\",\"namespace\":\"com.landoop\",\"doc\":\"This is an Avro schema for Truck Movements\",\"fields\":[{\"name\":\"truckid\",\"type\":\"string\"},{\"name\":\"driverid\",\"type\":\"string\"},{\"name\":\"eventtype\",\"type\":\"string\"},{\"name\":\"latitude\",\"type\":\"string\"},{\"name\":\"longitude\",\"type\":\"string\"}]}"}' http://192.168.69.136:8081/subjects/truck-movement-v1.0/versions
+
+{
+  "type": "record",
+  "name": "truckMovement",
+  "namespace": "com.trivadis.truck",
+  "doc": "This is an Avro schema for Truck Movements",
+  "fields": [
+    {
+      "name": "truckid",
+      "type": "string"
+    },
+    {
+      "name": "driverid",
+      "type": "string"
+    },
+    {
+      "name": "eventtype",
+      "type": "string"
+    },
+    {
+      "name": "latitude",
+      "type": "string"
+    },
+    {
+      "name": "longitude",
+      "type": "string"
+    }
+  ]
+}
+
+================================ Avro Consumer ======================================
+
+docker exec -ti schema_registry bash
+
+kafka-avro-console-consumer --bootstrap-server broker-1:9092 --topic truck_position
+
+
+================================ Landoop Lenses ======================================
+
+http://192.168.69.135:9991/#/connect
+

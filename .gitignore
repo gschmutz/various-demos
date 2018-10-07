@@ -5,5 +5,4 @@
 **/.settings
 **/target
 **/.metadata/
-jax-2018-stream-ingestion/src/truck-client/TrucksProducer-tcplocalhost1883/s-655.msg
-*.msg
+iot-stream-ingestion-demo/kafka-connect/**

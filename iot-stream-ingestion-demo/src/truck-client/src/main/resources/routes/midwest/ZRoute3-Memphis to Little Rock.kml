@@ -1,0 +1,86 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<kml xmlns='http://www.opengis.net/kml/2.2'>
+	<Document>
+		<name>Memphis to Little Rock Route 2</name>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 1</name>
+				<Point>
+					<coordinates>-90.0439453125,35.191766965947394,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 2</name>
+				<Point>
+					<coordinates>-90.37353515625,35.20972164522138,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 3</name>
+				<Point>
+					<coordinates>-90.68115234375,35.11990857099681,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 4</name>
+				<Point>
+					<coordinates>-90.94482421875,35.02999636902565,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 5</name>
+				<Point>
+					<coordinates>-91.142578125,34.95799531086792,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 6</name>
+				<Point>
+					<coordinates>-91.38427734375,34.831841149828676,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 7</name>
+				<Point>
+					<coordinates>-91.73583984375,34.88593094075317,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 8</name>
+				<Point>
+					<coordinates>-91.93359375,34.813803317113155,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 9</name>
+				<Point>
+					<coordinates>-92.08740234375,34.795761534730325,0.0</coordinates>
+				</Point>
+			</Placemark>
+			<Placemark>
+				<styleUrl>#icon-503-DB4436</styleUrl>
+				<name>Point 10</name>
+				<Point>
+					<coordinates>-92.30712890625,34.77771580360469,0.0</coordinates>
+				</Point>
+			</Placemark>
+
+		<Style id='icon-503-DB4436'>
+			<IconStyle>
+				<color>ff3644DB</color>
+				<scale>1.1</scale>
+				<Icon>
+					<href>http://www.gstatic.com/mapspro/images/stock/503-wht-blank_maps.png</href>
+				</Icon>
+			</IconStyle>
+		</Style>
+	</Document>
+</kml>
