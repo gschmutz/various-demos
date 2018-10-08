@@ -6,3 +6,4 @@
 **/target
 **/.metadata/
 iot-stream-ingestion-demo/kafka-connect/**
+oracle-stream-analytics/spark-osa.jar
