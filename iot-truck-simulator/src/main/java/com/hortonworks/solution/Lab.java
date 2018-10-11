@@ -18,7 +18,10 @@ public class Lab {
 	private static PropertyParser propertyParser;
 	private static final boolean DO_CLEAN_UP = true;
 
-	public static final String PROGRAM_NAME = "Lab";
+	public static final String PROGRAM_NAME = "iot-truck-simulator";
+
+	public static final String BROKER_ADDRESS_SHORT_FLAG = "-b";
+	public static final String BROKER_ADDRESS_LONG_FLAG = "--broker";
 
 	public static final String SINK_NAME_SHORT_FLAG = "-s";
 	public static final String SINK_NAME_LONG_FLAG = "--sink";
@@ -85,6 +88,11 @@ public class Lab {
 			switch (flag) {
 			case SINK_NAME_SHORT_FLAG:
 			case SINK_NAME_LONG_FLAG:
+				sink = null;
+				sink = nextArg(argv, flag).toLowerCase();
+				break;
+			case BROKER_NAME_SHORT_FLAG:
+			case BROKER_NAME_LONG_FLAG:
 				sink = null;
 				sink = nextArg(argv, flag).toLowerCase();
 				break;
