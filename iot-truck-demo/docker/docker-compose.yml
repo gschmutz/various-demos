@@ -110,33 +110,13 @@ services:
       # Schema Registry using HTTPS
       KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
       KSQL_KSQL_SERVICE_ID: "kafka-demo"
+      KSQL_KSQL_EXTENSION_DIR: /ext
       KSQL_PRODUCER_INTERCEPTOR_CLASSES: io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor
       KSQL_CONSUMER_INTERCEPTOR_CLASSES: io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor
       KSQL_KSQL_SERVER_UI_ENABLED: "true"
+    volumes:
+      - $PWD/ksql-server/ext:/ext
     restart: always
-
-  ksql-server-05:
-    image: "confluentinc/ksql-cli:0.5"
-    hostname: ksql-server-05
-    ports:
-      - '8082:8082'
-    depends_on:
-      - broker-1
-      - schema-registry
-    command: "bash -c 'cd /usr/bin/ && mkdir ui && cd ui &&  wget https://s3.amazonaws.com/ksql-experimental-ui/ksql-experimental-ui-0.1.war && \
-   										 echo bootstrap.servers=broker-1:9092 > /etc/ksql/ksqlserver.properties ; \
-                       echo application.id=ksql_server_quickstart >> /etc/ksql/ksqlserver.properties ; \
-                       echo ksql.command.topic.suffix=commands >> /etc/ksql/ksqlserver.properties ; \
-                       echo listeners=http://0.0.0.0:8082 >> /etc/ksql/ksqlserver.properties ; \
-                       echo ui.enabled=true >> /etc/ksql/ksqlserver.properties ; \
-                       pushd /tmp && wget http://get.arcadiadata.com/ksql/clickstream-schema.sql && popd && \
-                       cd .. && /usr/bin/ksql-server-start /etc/ksql/ksqlserver.properties'"
-    environment:
-      KSQL_CONFIG_DIR: "/etc/ksql"
-      KSQL_LOG4J_OPTS: "-Dlog4j.configuration=file:/etc/ksql/log4j-rolling.properties"
-      STREAMS_BOOTSTRAP_SERVERS: broker-1:9092
-      STREAMS_SCHEMA_REGISTRY_HOST: schema-registry
-      STREAMS_SCHEMA_REGISTRY_PORT: 8081
 
   ksql-cli:
     image: confluentinc/cp-ksql-cli:5.0.0
@@ -202,6 +182,17 @@ services:
       SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_ORIGIN: '*'
       SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_METHODS: 'GET,POST,PUT,OPTIONS'
     restart: always
+  
+  mqtt-proxy:
+    image: confluentinc/cp-kafka-mqtt:5.0.0
+    hostname: mqtt-proxy
+    ports:
+      - "1884:1884"
+    environment:
+      KAFKA_MQTT_TOPIC_REGEX_LIST: 'temperature:.*temperature, brightness:.*brightness'
+      KAFKA_MQTT_LISTENERS: 0.0.0.0:1884
+      KAFKA_MQTT_BOOTSTRAP_SERVERS: PLAINTEXT://broker-1:9092,broker-2:9093
+      KAFKA_MQTT_CONFLUENT_TOPIC_REPLICATIN_FACTOR: 1
   
   control-center:
     image: confluentinc/cp-enterprise-control-center:5.0.0
@@ -296,56 +287,5 @@ services:
     environment:
       SCHEMAREGISTRY_URL: 'http://${PUBLIC_IP}:8081'
     restart: always
-
-  kafka-client:
-    image: confluentinc/cp-kafka:5.0.0
-    hostname: kafka-client
-    container_name: kafka-client
-    depends_on:
-      - broker-1
-
-    # We defined a dependency on "kafka", but `depends_on` will NOT wait for the
-    # dependencies to be "ready" before starting the "kafka-client"
-    # container;  it waits only until the dependencies have started.  Hence we
-    # must control startup order more explicitly.
-    # See https://docs.docker.com/compose/startup-order/
-    command: "bash -c -a 'echo Waiting for Kafka to be ready... && \
-                       /etc/confluent/docker/configure && \
-                       cub kafka-ready -b broker-1:9092 1 60 --config /etc/kafka/kafka.properties && \
-                       sleep 5 && \
-                       kafka-topics --zookeeper zookeeper:2181 --create --topic truck_position --partitions 8 --replication-factor 2 \
-                       kafka-topics --zookeeper zookeeper:2181 --create --topic trucking_driver --partitions 8 --replication-factor 2 --config cleanup.policy=compact --config segment.ms=100 --config delete.retention.ms=100 --config min.cleanable.dirty.ratio=0.001'"
-    environment:
-      # The following settings are listed here only to satisfy the image's requirements.
-      # We override the image's `command` anyways, hence this container will not start a broker.
-      KAFKA_BROKER_ID: ignored
-      KAFKA_ZOOKEEPER_CONNECT: ignored
-      KAFKA_ADVERTISED_LISTENERS: ignored
-    ports:
-      - "7073:7073"
-      
-  ksql-datagen-clickstream:
-    image: "confluentinc/ksql-examples:0.5"
-    hostname: ksql-datagen-clickstream
-    depends_on:
-      - broker-1
-      - schema-registry
-    # Note: The container's `run` script will perform the same readiness checks
-    # for Kafka and Confluent Schema Registry, but that's ok because they complete fast.
-    # The reason we check for readiness here is that we can insert a sleep time
-    # for topic creation before we start the application.
-    command: "bash -c 'echo Waiting for Kafka to be ready... && \
-                       cub kafka-ready -b broker-1:9092 1 20 && \
-                       echo Waiting for Confluent Schema Registry to be ready... && \
-                       cub sr-ready schema-registry 8081 20 && \
-                       echo Waiting a few seconds for topic creation to finish... && \
-                       sleep 2 && \
-                       java -jar /usr/share/java/ksql-examples/ksql-examples-4.1.0-SNAPSHOT-standalone.jar
-                       quickstart=clickstream format=json topic=clickstream bootstrap-server=broker-1:9092 maxInterval=100 iterations=500000'"
-    environment:
-      KSQL_CONFIG_DIR: "/etc/ksql"
-      KSQL_LOG4J_OPTS: "-Dlog4j.configuration=file:/etc/ksql/log4j-rolling.properties"
-      STREAMS_BOOTSTRAP_SERVERS: broker-1:9092
-      STREAMS_SCHEMA_REGISTRY_HOST: schema-registry
-      STREAMS_SCHEMA_REGISTRY_PORT: 8081      
+    
       
