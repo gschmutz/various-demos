@@ -107,7 +107,7 @@ INSERT INTO "driver" ("id", "first_name", "last_name", "available", "birthdate",
 INSERT INTO "driver" ("id", "first_name", "last_name", "available", "birthdate", "last_update") VALUES (31,'Rosemarie', 'Ruiz', 'Y', '22-SEP-80', CURRENT_TIMESTAMP);
 INSERT INTO "driver" ("id", "first_name", "last_name", "available", "birthdate", "last_update") VALUES (32,'Shaun', ' Marshall', 'Y', '22-JAN-85', CURRENT_TIMESTAMP);
 ```
-## Truck Simulator
+## (1) Truck Simulator
 
 ### Producing to Kafka
 
@@ -151,7 +151,7 @@ mvn exec:java -Dexec.args="-s MQTT -f JSON -p 1883 -t millisec"
 
 in MQTT.fx suscribe to `truck/+/drving_info`
 
-## MQTT to Kafa using Kafka Connect
+## (2) MQTT to Kafa using Kafka Connect
 
 First let's listen on the topci: 
 
@@ -174,7 +174,7 @@ You can remove the connector using the following command
 curl -X "DELETE" "$DOCKER_HOST_IP:8083/connectors/mqtt-source"
 ```
 
-## MQTT to Kafa using Confluent MQTT Proxy
+## (3) MQTT to Kafa using Confluent MQTT Proxy
 
 Make sure that the MQTT proxy has been started as a service in the `docker-compose.yml`.
 
@@ -197,10 +197,8 @@ Change the truck simulator to produce on port 1884, which is the one the MQTT pr
 mvn exec:java -Dexec.args="-s MQTT -f JSON -p 1884 -m SPLIT -t millisec"
 ```
 
-## MQTT to Kafa using StreamSets Data Collector (todo)
 
-
-## Using KSQL for Stream Analytics
+## (5) Using KSQL for Stream Analytics
 ### Connect to KSQL CLI
 
 
@@ -285,7 +283,7 @@ SELECT * FROM truck_driving_info_s WHERE eventType != 'Normal';
 1539712120102 | truck/31/position | null | 31 | 12 | 927636994 | Unsafe following distance | 38.22 | -91.18 | -6187001306629414077
 ```
 
-### Create a new Stream with the result
+### (6) Create a new Stream with the result
 
 Let's provide the data as a topic:
 
@@ -305,6 +303,10 @@ kafka-console-consumer --bootstrap-server broker-1:9092 --topic dangerous_drivin
 ```
 
 ```
+kafkacat -b streamingplatform -t dangerous_driving
+```
+
+```
 DROP STREAM dangerous_driving_s;
 CREATE STREAM dangerous_driving_s \
   WITH (kafka_topic='dangerous_driving', \
@@ -318,7 +320,7 @@ WHERE eventType != 'Normal';
 SELECT * FROM dangerous_driving_s;
 ```
 
-### Aggregations using KSQL
+### (7) Aggregations using KSQL
 
 DROP TABLE dangerous_driving_count;
 
@@ -344,7 +346,7 @@ WINDOW HOPPING (SIZE 30 SECONDS, ADVANCE BY 10 SECONDS) \
 GROUP BY eventType;
 ```
 
-## Join with Static Driver Data
+## (8) Join with Static Driver Data
 
 first start the console consumer on the `trucking_driver` topic:
 
@@ -493,7 +495,7 @@ UPDATE "driver" SET "first_name" = 'Slow Down Mickey', "last_update" = CURRENT_T
 UPDATE "driver" SET "first_name" = 'Slow Down Patricia', "last_update" = CURRENT_TIMESTAMP  WHERE "id" = 22;
 ```
 
-## GeoHash and Aggregation
+## (9) GeoHash and Aggregation
 
 ```
 SELECT latitude, longitude, geohash(latitude, longitude, 4) \
