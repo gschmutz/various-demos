@@ -1,19 +1,18 @@
 #!/bin/bash
 
-echo "removing MQTT Source Connector"
+echo "removing MQTT Source Connectors"
 
-curl -X "DELETE" "$DOCKER_HOST_IP:8083/connectors/mqtt-source"
+curl -X "DELETE" "$DOCKER_HOST_IP:8083/connectors/mqtt-position-source"
 
-echo "creating MQTT Source Connector"
+echo "creating MQTT Source Connector - Position"
 
 curl -X "POST" "$DOCKER_HOST_IP:8083/connectors" \
      -H "Content-Type: application/json" \
      --data '{
-  "name": "mqtt-source",
+  "name": "mqtt-position-source",
   "config": {
     "connector.class": "io.confluent.connect.mqtt.MqttSourceConnector",
     "tasks.max": "1",
-    "name": "mqtt-source",
     "mqtt.server.uri": "tcp://mosquitto:1883",
     "mqtt.topics": "truck/+/position",
     "kafka.topic":"truck_position",
@@ -23,3 +22,4 @@ curl -X "POST" "$DOCKER_HOST_IP:8083/connectors" \
     "mqtt.qos":"0"
     }
   }'
+

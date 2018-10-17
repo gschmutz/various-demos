@@ -189,7 +189,7 @@ services:
     ports:
       - "1884:1884"
     environment:
-      KAFKA_MQTT_TOPIC_REGEX_LIST: 'temperature:.*temperature, brightness:.*brightness'
+      KAFKA_MQTT_TOPIC_REGEX_LIST: 'truck_position:.*position,truck_engine:.*engine'
       KAFKA_MQTT_LISTENERS: 0.0.0.0:1884
       KAFKA_MQTT_BOOTSTRAP_SERVERS: PLAINTEXT://broker-1:9092,broker-2:9093
       KAFKA_MQTT_CONFLUENT_TOPIC_REPLICATIN_FACTOR: 1
@@ -242,6 +242,12 @@ services:
       - POSTGRES_DB=sample
     restart: always
    
+#  cassandra:
+#    image: cassandra
+#    ports:
+#      - 9042:9042
+#    restart: always
+
   kafka-manager:
     image: trivadisbds/kafka-manager
     hostname: kafka-manager
@@ -255,7 +261,7 @@ services:
     restart: always
    
   streamsets:
-    image: trivadisbds/streamsets-kafka-nosql
+    image: trivadisbds/streamsets-kafka-nosql:3.5.0
     hostname: streamsets
     ports:
       - "18630:18630"
