@@ -2,20 +2,16 @@ package com.trivadis.avro.demo;
 
 import static org.junit.Assert.assertEquals;
 
-import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.io.Writer;
 import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.avro.Schema;
 import org.apache.avro.file.CodecFactory;
-import org.apache.avro.file.DataFileConstants;
 import org.apache.avro.file.DataFileReader;
 import org.apache.avro.file.DataFileWriter;
 import org.apache.avro.generic.GenericData;
@@ -30,14 +26,15 @@ import org.apache.avro.io.EncoderFactory;
 import org.apache.avro.io.JsonEncoder;
 import org.apache.avro.specific.SpecificDatumReader;
 import org.apache.avro.specific.SpecificDatumWriter;
-import org.apache.avro.specific.SpecificRecord;
 import org.joda.time.LocalDate;
-import org.joda.time.format.DateTimeFormatter;
 import org.junit.Test;
 
 import com.trivadis.avro.person.v1.Address;
 import com.trivadis.avro.person.v1.Person;
 import com.trivadis.avro.person.v1.TitleEnum;
+import com.trivadis.datagenerator.PersonData;
+import com.trivadis.datagenerator.domain.PersonDO;
+
 
 public class TestAvroV1 {
 
@@ -206,27 +203,28 @@ public class TestAvroV1 {
 
 	@Test
 	public void testWriteToContainerFileV1() throws IOException {
-		List<Person> persons = new ArrayList<Person>();
-		List<Address> addresses = new ArrayList<Address>();
-		
-		addresses.add(Address.newBuilder()
-				.setId(1)
-				.setStreetAndNr("Somestreet 10")
-				.setZipAndCity("9332 Somecity").build());
-		
-		Person person1 = Person.newBuilder().setId(1)
-					.setFirstName("Peter")
-					.setLastName("Sample")
-					.setEmailAddress("peter.sample@somecorp.com")
-					.setPhoneNumber("+41 79 345 34 44")
-					.setFaxNumber("+41 31 322 33 22")
-					.setTitle(TitleEnum.Mr)
-					.setDateOfBirth(LocalDate.parse("1995-11-10"))
-					.setAddresses(addresses).build();
-		for (int i = 1; i<100; i++) {
-			persons.add(person1);
-		}
+		List<PersonDO> personsDO = PersonData.getPersons();
+		List<Person> persons = new ArrayList<>();
+		List<Address> addresses = new ArrayList<>();
 
+		for (PersonDO personDO: personsDO) {
+			addresses.add(Address.newBuilder()
+					.setId(1)
+					.setStreetAndNr(personDO.getAddresses().get(0).getSteetAndNr())
+					.setZipAndCity(personDO.getAddresses().get(0).getZipAndCity()).build());
+			
+			Person person = Person.newBuilder().setId(1)
+						.setFirstName(personDO.getFirstName())
+						.setLastName(personDO.getLastName())
+						.setEmailAddress(personDO.getEmailAddress())
+						.setPhoneNumber(personDO.getPhoneNumber())
+						.setFaxNumber(personDO.getFaxNumber())
+						.setTitle(TitleEnum.valueOf("Mr"))
+						.setDateOfBirth(LocalDate.parse("1995-11-10"))
+						.setAddresses(addresses).build();
+			persons.add(person);
+		}
+		
 		final DatumWriter<Person> datumWriter = new SpecificDatumWriter<>(Person.class);
 		final DataFileWriter<Person> dataFileWriter = new DataFileWriter<>(datumWriter);
 

@@ -2,8 +2,8 @@
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 
-	<groupId>com.trivadis.demo.avro</groupId>
-	<artifactId>avro-v1</artifactId>
+	<groupId>com.trivadis.demo</groupId>
+	<artifactId>datagenerator</artifactId>
 	<version>1.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
@@ -38,53 +38,22 @@
 	</pluginRepositories>
 	
 	<dependencies>
-		<dependency>
-			<groupId>com.trivadis.demo</groupId>
-			<artifactId>datagenerator</artifactId>
-			<version>1.0-SNAPSHOT</version>
-		</dependency>
 
-		<dependency>
-			<groupId>org.apache.avro</groupId>
-			<artifactId>avro</artifactId>
-			<version>1.8.2</version>
-		</dependency>
-		<dependency>
-		  	<groupId>joda-time</groupId>
-		  	<artifactId>joda-time</artifactId>
-		  	<version>2.10.1</version>
-		</dependency>		
-		
 		<dependency>
 			<groupId>junit</groupId>
 			<artifactId>junit</artifactId>
 			<version>4.12</version>
 			<scope>test</scope>
-		</dependency>		
+		</dependency>
+		<dependency>
+			<groupId>com.googlecode.json-simple</groupId>
+			<artifactId>json-simple</artifactId>
+			<version>1.1.1</version>
+		</dependency>
+		
 	</dependencies>
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.avro</groupId>
-				<artifactId>avro-maven-plugin</artifactId>
-				<version>1.8.2</version>
-				<executions>
-					<execution>
-						<id>schemas</id>
-						<phase>generate-sources</phase>
-						<goals>
-							<goal>schema</goal>
-						</goals>
-						<configuration>
-							<excludes>
-								<exclude>**/mapred/tether/**</exclude>
-							</excludes>
-							<sourceDirectory>${project.basedir}/src/main/avro/</sourceDirectory>
-							<testSourceDirectory>${project.basedir}/src/test/avro/</testSourceDirectory>
-						</configuration>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
@@ -92,23 +61,6 @@
 					<source>1.8</source>
 					<target>1.8</target>
 				</configuration>
-			</plugin>
-			<plugin>
-   				<groupId>io.confluent</groupId>
-    				<artifactId>kafka-schema-registry-maven-plugin</artifactId>
-    				<version>4.0.0</version>
-				<configuration>
-					<schemaRegistryUrls>
-						<param>http://172.16.10.10:8081</param>
-					</schemaRegistryUrls>
-					<subjects>
-						<person-v1-value>src/main/avro/Person-v1.avsc</person-v1-value>
-					</subjects>
-				</configuration>
-				<goals>
-					<goal>register</goal>
-				</goals>
-
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
