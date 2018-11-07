@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package com.trivadis.protobuf.address.v1;
+
+//option java_package = "com.example.options";
+option java_outer_classname = "AddressWrapper";
+//option java_multiple_files = true;
+
+message Addresss {
+  int32 id = 1;
+  string street_and_nr = 2;
+  string zip_and_city = 3;
+}

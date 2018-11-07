@@ -1,0 +1,86 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+
+	<groupId>com.trivadis.demo.protobuf</groupId>
+	<artifactId>protobuf-v1</artifactId>
+	<version>1.0-SNAPSHOT</version>
+	<packaging>jar</packaging>
+
+	<name>Google ProtocolBuffer Demo</name>
+
+	<properties>
+		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+	</properties>
+	<repositories>
+		<repository>
+			<id>github-releases</id>
+			<url>http://oss.sonatype.org/content/repositories/github-releases/</url>
+		</repository>
+		<repository>
+			<id>clojars.org</id>
+			<url>http://clojars.org/repo</url>
+		</repository>
+		<repository>
+			<id>local-maven-repo</id>
+			<url>file:///${project.parent.basedir}/local-maven-repo</url>
+		</repository>
+  		<repository>
+    			<id>confluent</id>
+    			<url>https://packages.confluent.io/maven/</url>
+  		</repository>
+	</repositories>
+	<pluginRepositories>
+		<pluginRepository>
+			<id>confluent</id>
+			<url>http://packages.confluent.io/maven/</url>
+		</pluginRepository>
+	</pluginRepositories>
+	
+	<dependencies>
+		<dependency>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.12</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>com.google.protobuf</groupId>
+			<artifactId>protobuf-java</artifactId>
+			<version>3.6.1</version>
+		</dependency>
+	</dependencies>
+	<build>
+		<plugins>
+      		<plugin>
+        		<groupId>org.xolstice.maven.plugins</groupId>
+        		<artifactId>protobuf-maven-plugin</artifactId>
+        		<version>0.6.1</version>
+        		<configuration>
+          			<protocExecutable>/usr/local/bin/protoc</protocExecutable>
+        		</configuration>
+        		<executions>
+          			<execution>
+            			<goals>
+              				<goal>compile</goal>
+              				<goal>test-compile</goal>
+            			</goals>
+          			</execution>
+        		</executions>
+      		</plugin>
+      		<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-compiler-plugin</artifactId>
+				<configuration>
+					<source>1.8</source>
+					<target>1.8</target>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+			</plugin>
+		</plugins>
+	</build>
+
+</project>

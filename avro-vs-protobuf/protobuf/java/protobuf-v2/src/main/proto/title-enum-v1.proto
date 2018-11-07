@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+package com.trivadis.protobuf.lov;
+
+option java_outer_classname = "TitleEnumWrapper";
+
+enum Title {
+    UNKNOWN = 0;
+    MR = 1;
+    MRS = 2;
+    MS = 3;
+}

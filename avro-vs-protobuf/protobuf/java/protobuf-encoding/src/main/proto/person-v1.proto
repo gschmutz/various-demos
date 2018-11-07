@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package com.trivadis.protobuf.person.v1;
+
+option java_outer_classname = "PersonWrapper";
+
+message Person {
+	int32 id = 1;
+	string name = 2;
+    repeated string skills = 3;
+}

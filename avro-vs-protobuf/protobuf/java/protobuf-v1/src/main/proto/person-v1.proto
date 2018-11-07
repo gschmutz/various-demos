@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package com.trivadis.protobuf.person.v1;
+
+import "address-v1.proto";
+import "title-enum-v1.proto";
+import "google/protobuf/timestamp.proto";
+
+option java_outer_classname = "PersonWrapper";
+
+message Person {
+	int32 id = 1;
+	string first_name = 2;
+	string last_name = 3;
+	com.trivadis.protobuf.lov.Title title = 4;
+	string email_address = 5;
+	string phone_number = 6;
+	string fax_number = 7;
+	google.protobuf.Timestamp date_of_birth = 8;
+    repeated trivadis.protobuf.address.v1.Addresss addresses = 9;
+}
