@@ -96,8 +96,7 @@
 						<param>http://172.16.10.10:8081</param>
 					</schemaRegistryUrls>
 					<subjects>
-						<customer-v1-value>src/main/avro/Customer-v1.avsc</customer-v1-value>
-						<order-v1-value>src/main/avro/Order-v1.avsc</order-v1-value>
+						<person-v1-value>src/main/avro/Person-v1.1.avsc</person-v1-value>
 					</subjects>
 				</configuration>
 				<goals>
