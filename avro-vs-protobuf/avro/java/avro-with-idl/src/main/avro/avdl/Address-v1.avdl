@@ -1,0 +1,11 @@
+@namespace("com.trivadis.avro.address.v1")
+
+protocol AddressIdl {
+
+	record Address {
+		int id;
+		string streetAndNr;
+		string zipAndCity;
+	}
+
+}

@@ -1,0 +1,23 @@
+@namespace("com.trivadis.avro.person.v1")
+
+protocol PersonIdl {
+	
+	import idl "Address-v1.avdl";
+	
+    enum TitleEnum {
+      Unknown, Mr, Ms, Mrs
+    }
+
+    record Person {
+      int id;
+      string firstName;
+      string lastName;
+      TitleEnum title;
+      union { null, string } emailAddress;
+      union { null, string } phoneNumber;
+      union { null, string } faxNumber;
+      date dateOfBirth;
+      
+      array<com.trivadis.avro.address.v1.Address> addresses;
+    }
+}

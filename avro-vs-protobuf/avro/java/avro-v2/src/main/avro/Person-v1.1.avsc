@@ -1,0 +1,38 @@
+{
+  "type" : "record",
+  "namespace" : "com.trivadis.avro.person.v1",
+  "name" : "Person",
+  "description" : "the representation of a person",
+  "fields" : [
+     { "name": "id", "doc": "ID", "type": "int" },  
+	 { "name": "firstName", "doc": "First Name", "type": "string" },
+	 { "name": "middleName", "doc": "Middle Name", "type": ["null","string"], "default":null },
+	 { "name": "lastName", "doc": "Last Name", "type": "string" },
+     { "name" : "title",
+      "doc" : "the title used",
+      "type" : { 
+      		"type" : "enum",
+      		"doc" : "Valid titles",
+      		"name" : "TitleEnum",
+      		"symbols" : ["Unknown", "Mr", "Mrs", "Ms"]
+      		}
+     },	 
+     { "name": "emailAddress", "doc": "the email address", "type": ["null","string"] },
+     { "name": "phoneNumber", "doc": "the phone number", "type": ["null", "string"] },
+     { "name" : "addresses",
+       "type" : ["null", {
+          "type" : "array",
+          "items" : {
+          		"name" : "Address",
+          		"type" : "record",
+          		"fields" : [
+          			{ "name": "id", "type": "int" },
+          			{ "name": "streetAndNr", "type": "string" },
+          			{ "name": "zipAndCity", "type": "string" }
+          		]        
+          }
+       }]
+     },      
+	 { "name": "birthDate", "aliases": ["dateOfBirth"], "doc": "Date of Birth", "type": { "type": "int", "logicalType": "date" }  }
+     ]
+}

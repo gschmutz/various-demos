@@ -1,0 +1,13 @@
+{
+  "type" : "record",
+  "namespace" : "com.trivadis.avro.person.v1",
+  "name" : "Person",
+  "description" : "A simple representation of a person to be used to visualize encoding",
+  "fields" : [
+     { "name": "id", "doc": "ID", "type": "int" },  
+	 { "name": "name", "doc": "Name", "type": "string" },
+     { "name" : "skills",
+       "type" : { "type" : "array", "items" : "string" }
+       }
+     ]
+}
