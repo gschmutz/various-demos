@@ -2,64 +2,78 @@
 
 ## Prepare Environment
 
-### Create the infrastructure using Docker and Docker Compose
+The environment we are going to use is based on docker containers. In order to easily start the multiple containers, we are going to use Docker Compose. 
 
-In order for Kafka to work in the Docker Compose setup below, two envrionment variables are necessary.
+### Create infrastructure using Docker Compose
 
-You can add them to /etc/environment (without export) to make them persistent:
+For Kafka to work in this Docker Compose setup, two envrionment variables are necessary, which are configured with the IP address of the docker machine as well as the Public IP of the docker machine. 
+
+You can add them to `/etc/environment` (without export) to make them persistent:
 
 ```
 export DOCKER_HOST_IP=192.168.25.136
 export PUBLIC_IP=192.168.25.136
 ```
 
-Add streamingplatform alias to /etc/hosts
+Also export the local folder of this GitHub project as the SAMPLE_HOME variable. 
+
+```
+export SAMPLE_HOME=/mnt/hgfs/git/gschmutz/various-demos/iot-truck-demo
+```
+
+Add `streamingplatform` as an alias to the `/etc/hosts` file on the machine you are using to run the demo on.
 
 ```
 192.168.25.136	streamingplatform
 ```
 
-Start the environment using 
+Now we can start the environment. Navigate to the `docker` sub-folder inside the SAMPLE_HOME folder. 
 
 ```
-export SAMPLE_HOME=/mnt/hgfs/git/gschmutz/various-demos/iot-truck-demo
 cd $SAMPLE_HOME/docker
 ```
 
-Start Docker Compose environemnt
+and start the vaious docker containers 
 
 ```
 docker-compose up -d
 ```
 
-Show logs
+to show the logs of the containers
 
 ```
 docker-compose logs -f
 ```
 
-the following user interfaces are available:
+The following user interfaces are available:
 
  * Confluent Control Center: <http://streamingplatform:9021>
  * Kafka Manager: <http://streamingplatform:9000> 
- * Streamsets: <http://streamingplatform:18630>
+ * Schema Registry UI: <http://streamingplatform:8002>
+ * Kafka Connect UI: <http://streamingplatform:8003>
+ * StreamSets Data Collector: <http://streamingplatform:18630>
 
-### Creating the necessary Kafka topics
+### Creating the necessary Kafka Topics
 
-Connect to docker container (broker-1)
+The Kafka cluster is configured with `auto.topic.create.enable` set to `false`. Therefore we first have to create all the necessary topics, using the `kafka-topics` command line utility of Apache Kafka. 
+
+We can easily get access to the `kafka-topics` CLI by navigating into one of the containers for the 3 Kafka Borkers. Let's use `broker-1`
 
 ```
 docker exec -ti docker_broker-1_1 bash
 ```
 
-list topics and create an new topic
+First lets see all existing topics
 
 ```
 kafka-topics --zookeeper zookeeper:2181 --list
 ```
 
+And now create the topics `truck_position`, `dangerous_driving_and_driver ` and `truck_driver`.
+
 ```
 kafka-topics --zookeeper zookeeper:2181 --create --topic truck_position --partitions 8 --replication-factor 2
+kafka-topics --zookeeper zookeeper:2181 --create --topic dangerous_driving --partitions 8 --replication-factor 2
 kafka-topics --zookeeper zookeeper:2181 --create --topic dangerous_driving_and_driver --partitions 8 --replication-factor 2
 
 kafka-topics --zookeeper zookeeper:2181 --create --topic truck_driver --partitions 8 --replication-factor 2 --config cleanup.policy=compact --config segment.ms=100 --config delete.retention.ms=100 --config min.cleanable.dirty.ratio=0.001
@@ -67,9 +81,17 @@ kafka-topics --zookeeper zookeeper:2181 --create --topic truck_driver --partitio
 
 ### Prepare Database Table
 
+We also need a database table holding the information of the truck driver. 
+
+The infrastructure we have started above also conains an instance of Postgresql in a separate docker container. 
+
+Let's connect to that container 
+
 ```
 docker exec -ti docker_db_1 bash
 ```
+
+and run the `psql` command line utility. 
 
 ```
 psql -d sample -U sample
@@ -121,7 +143,7 @@ docker exec -ti docker_broker-1_1 bash
 kafka-console-consumer --bootstrap-server broker-1:9092 --topic truck_position
 ```
 
-or by using kafkacat:
+or by using kafkacat (using the quiet option):
 
 ```
 kafkacat -b streamingplatform:9092 -t truck_position -q
@@ -134,7 +156,7 @@ cd $SAMPLE_HOME/../iot-truck-simulator
 ```
 
 ```
-mvn exec:java -Dexec.args="-s KAFKA -f JSON -t sec -b localhost -p 9092"
+mvn exec:java -Dexec.args="-s KAFKA -f CSV -t sec -b localhost -p 9092"
 ```
 
 ### Producing to MQTT
@@ -146,7 +168,7 @@ cd $SAMPLE_HOME/../iot-truck-simulator
 To produce to topic on MQTT broker on port 1883 (mosquitto)
 
 ```
-mvn exec:java -Dexec.args="-s MQTT -f JSON -p 1883 -t millisec"
+mvn exec:java -Dexec.args="-s MQTT -f CSV -p 1883 -t millisec"
 ```
 
 in MQTT.fx suscribe to `truck/+/drving_info`
@@ -194,7 +216,7 @@ Make sure that the MQTT proxy has been started as a service in the `docker-compo
 Change the truck simulator to produce on port 1884, which is the one the MQTT proxy listens on.
 
 ```
-mvn exec:java -Dexec.args="-s MQTT -f JSON -p 1884 -m SPLIT -t millisec"
+mvn exec:java -Dexec.args="-s MQTT -f CSV -p 1884 -m SPLIT -t millisec"
 ```
 
 
@@ -202,19 +224,19 @@ mvn exec:java -Dexec.args="-s MQTT -f JSON -p 1884 -m SPLIT -t millisec"
 ### Connect to KSQL CLI
 
 
-first let's connect to the KSQL CLI
+First let's connect to the KSQL CLI
 
 ```
 cd $SAMPLE_HOME/docker
-```
-
-```
 docker-compose exec ksql-cli ksql http://ksql-server:8088
 ```
+
+Show the available Kafka topics
 
 ```
 show topics;
 ```
+
 
 ```
 print 'truck_position';
@@ -244,7 +266,7 @@ CREATE STREAM truck_position_s \
    longitude DOUBLE, \
    correlationId VARCHAR) \
   WITH (kafka_topic='truck_position', \
-        value_format='JSON');
+        value_format='DELIMITED');
 ```
 
 Get info on the stream
@@ -257,6 +279,12 @@ DESCRIBE EXTENDED truck_position_s;
 ```
 SELECT * FROM truck_position_s;
 ```
+
+```
+cd $SAMPLE_HOME/scripts/
+./stop-connect-mqtt.sh
+```
+
 
 ```
 ksql> SELECT * from truck_position_s;
@@ -273,7 +301,7 @@ ksql> SELECT * from truck_position_s;
 Now let's filter on all the info messages, where the `eventType` is not normal:
 
 ```
-SELECT * FROM truck_driving_info_s WHERE eventType != 'Normal';
+SELECT * FROM truck_position_s WHERE eventType != 'Normal';
 ```
 
 ```
@@ -287,20 +315,19 @@ SELECT * FROM truck_driving_info_s WHERE eventType != 'Normal';
 
 Let's provide the data as a topic:
 
-create a topic where all "dangerous driving" events should be sent to
+First create a topic where all "dangerous driving" events should be sent to
 	
 ```
-cd $SAMPLE_HOME/docker
-docker exec -ti docker_broker-1_1 bash
-
 kafka-topics --zookeeper zookeeper:2181 --create --topic dangerous_driving --partitions 8 --replication-factor 2
 ```
 
-listen on the topic
+Now create a "console" listener on the topic, either using the `kafka-console-consumer`
 
 ```
 kafka-console-consumer --bootstrap-server broker-1:9092 --topic dangerous_driving
 ```
+
+or the `kafkacat` utility.
 
 ```
 kafkacat -b streamingplatform -t dangerous_driving
@@ -308,9 +335,12 @@ kafkacat -b streamingplatform -t dangerous_driving
 
 ```
 DROP STREAM dangerous_driving_s;
+```
+
+```
 CREATE STREAM dangerous_driving_s \
   WITH (kafka_topic='dangerous_driving', \
-        value_format='DELIMITED', \
+        value_format='JSON', \
         partitions=8) \
 AS SELECT * FROM truck_position_s \
 WHERE eventType != 'Normal';
@@ -340,7 +370,7 @@ FROM dangerous_driving_count;
 ```
 CREATE TABLE dangerous_driving_count
 AS
-SELECT eventType, count(*) \
+SELECT eventType, count(*) nof \
 FROM dangerous_driving_s \
 WINDOW HOPPING (SIZE 30 SECONDS, ADVANCE BY 10 SECONDS) \
 GROUP BY eventType;
@@ -348,7 +378,8 @@ GROUP BY eventType;
 
 ## (8) Join with Static Driver Data
 
-first start the console consumer on the `trucking_driver` topic:
+### Start the synchronization from the RDBMS table "truck"
+First start the console consumer on the `trucking_driver` topic:
 
 ```
 docker exec -ti docker_broker-1_1 bash
@@ -400,9 +431,7 @@ kafka-console-consumer --bootstrap-server broker-1:9092 --topic trucking_driver 
 
 ### Create a KSQL table
 
-```
-docker-compose exec ksql-cli ksql http://ksql-server:8088
-```
+In the KSQL CLI, let's create a table over the `truck_driver` topic. It will hold the latest state of all the drivers:
 
 ```
 set 'commit.interval.ms'='5000';
@@ -421,9 +450,16 @@ CREATE TABLE driver_t  \
         KEY = 'id');
 ```
 
+Let's see that we actually have some drivers in the table. 
+
 ```
+set 'commit.interval.ms'='5000';
+set 'cache.max.bytes.buffering'='10000000';
+set 'auto.offset.reset'='earliest';
+
 SELECT * FROM driver_t;
 ```
+
 
 ```
 docker exec -ti docker_db_1 bash
