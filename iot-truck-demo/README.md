@@ -73,6 +73,7 @@ And now create the topics `truck_position`, `dangerous_driving_and_driver ` and 
 
 ```
 kafka-topics --zookeeper zookeeper:2181 --create --topic truck_position --partitions 8 --replication-factor 2
+kafka-topics --zookeeper zookeeper:2181 --create --topic dangerous_driving --partitions 8 --replication-factor 2
 kafka-topics --zookeeper zookeeper:2181 --create --topic dangerous_driving_and_driver --partitions 8 --replication-factor 2
 
 kafka-topics --zookeeper zookeeper:2181 --create --topic truck_driver --partitions 8 --replication-factor 2 --config cleanup.policy=compact --config segment.ms=100 --config delete.retention.ms=100 --config min.cleanable.dirty.ratio=0.001
@@ -155,7 +156,7 @@ cd $SAMPLE_HOME/../iot-truck-simulator
 ```
 
 ```
-mvn exec:java -Dexec.args="-s KAFKA -f JSON -t sec -b localhost -p 9092"
+mvn exec:java -Dexec.args="-s KAFKA -f CSV -t sec -b localhost -p 9092"
 ```
 
 ### Producing to MQTT
@@ -167,7 +168,7 @@ cd $SAMPLE_HOME/../iot-truck-simulator
 To produce to topic on MQTT broker on port 1883 (mosquitto)
 
 ```
-mvn exec:java -Dexec.args="-s MQTT -f JSON -p 1883 -t millisec"
+mvn exec:java -Dexec.args="-s MQTT -f CSV -p 1883 -t millisec"
 ```
 
 in MQTT.fx suscribe to `truck/+/drving_info`
@@ -223,19 +224,19 @@ mvn exec:java -Dexec.args="-s MQTT -f CSV -p 1884 -m SPLIT -t millisec"
 ### Connect to KSQL CLI
 
 
-first let's connect to the KSQL CLI
+First let's connect to the KSQL CLI
 
 ```
 cd $SAMPLE_HOME/docker
-```
-
-```
 docker-compose exec ksql-cli ksql http://ksql-server:8088
 ```
+
+Show the available Kafka topics
 
 ```
 show topics;
 ```
+
 
 ```
 print 'truck_position';
@@ -278,6 +279,12 @@ DESCRIBE EXTENDED truck_position_s;
 ```
 SELECT * FROM truck_position_s;
 ```
+
+```
+cd $SAMPLE_HOME/scripts/
+./stop-connect-mqtt.sh
+```
+
 
 ```
 ksql> SELECT * from truck_position_s;
@@ -446,6 +453,10 @@ CREATE TABLE driver_t  \
 Let's see that we actually have some drivers in the table. 
 
 ```
+set 'commit.interval.ms'='5000';
+set 'cache.max.bytes.buffering'='10000000';
+set 'auto.offset.reset'='earliest';
+
 SELECT * FROM driver_t;
 ```
 
