@@ -15,3 +15,5 @@ Servers/Pivotal tc Server Developer Edition v4.0-config/jmxremote.password
 Servers/Pivotal tc Server Developer Edition v4.0-config/server.xml
 Servers/Pivotal tc Server Developer Edition v4.0-config/tomcat-users.xml
 Servers/Pivotal tc Server Developer Edition v4.0-config/web.xml
+**/.recommenders/**
+**/data/**
