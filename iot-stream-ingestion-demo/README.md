@@ -2,38 +2,44 @@
 
 ## Prepare Environment
 
+The environment we are going to use is based on docker containers. In order to easily start the multiple containers, we are going to use Docker Compose. 
+
 ### Docker Compose
 
-In order for Kafka to work in the Docker Compose setup below, two envrionment variables are necessary.
+For Kafka to work in this Docker Compose setup, two envrionment variables are necessary, which are configured with the IP address of the docker machine as well as the Public IP of the docker machine. 
 
-You can add them to /etc/environment (without export) to make them persistent:
+You can add them to `/etc/environment` (without export) to make them persistent:
 
 ```
 export DOCKER_HOST_IP=192.168.25.136
 export PUBLIC_IP=192.168.25.136
 ```
+Also export the local folder of this GitHub project as the SAMPLE_HOME variable. 
 
-Add streamingplatform alias to /etc/hosts
+```
+export SAMPLE_HOME=/mnt/hgfs/git/gschmutz/various-demos/iot-truck-demo
+```
+
+
+Add `streamingplatform` as an alias to the `/etc/hosts` file on the machine you are using to run the demo on. 
 
 ```
 192.168.25.136	streamingplatform
 ```
 
-
-Start the environment using 
+Now we can start the environment. Navigate to the `docker` sub-folder inside the SAMPLE_HOME folder. 
 
 ```
-export SAMPLE_HOME=/mnt/hgfs/git/gschmutz/various-demos/iot-truck-demo
 cd $SAMPLE_HOME/docker
 ```
 
-Start Docker Compose environemnt
+and start the vaious docker containers 
 
 ```
 docker-compose up -d
 ```
 
-Show logs
+to show the logs of the containers
 
 ```
 docker-compose logs -f
@@ -42,18 +48,24 @@ docker-compose logs -f
 
 ### Creating Kafka Topics
 
-Connect to docker container (broker-1)
+The Kafka cluster is configured with `auto.topic.create.enable` set to `false`. Therefore we first have to create all the necessary topics, using the `kafka-topics` command line utility of Apache Kafka. 
+
+We can easily get access to the `kafka-topics` CLI by navigating into one of the containers for the 3 Kafka Borkers. Let's use `broker-1`
 
 ```
 docker exec -ti docker_broker-1_1 bash
 ```
 
-list topics and create an new topic
+First lets see all existing topics
 
 ```
 kafka-topics --zookeeper zookeeper:2181 --list
+```
+
+And now create the topics `truck_position` and `truck_driver`.
+
+```
 kafka-topics --zookeeper zookeeper:2181 --create --topic truck_position --partitions 8 --replication-factor 2
-kafka-topics --zookeeper zookeeper:2181 --create --topic truck_driving_info --partitions 8 --replication-factor 2
 
 kafka-topics --zookeeper zookeeper:2181 --create --topic truck_driver --partitions 8 --replication-factor 2 --config cleanup.policy=compact --config segment.ms=100 --config delete.retention.ms=100 --config min.cleanable.dirty.ratio=0.001
 ```
@@ -63,6 +75,8 @@ kafka-topics --zookeeper zookeeper:2181 --create --topic truck_driver --partitio
 ### Producing to Kafka
 
 Produce the IoT Truck events to topic `truck_position` and `truck_driving_info`.
+
+In a new terminal window, move to the `truck-client` folder and start the truck simulator:
 
 ```
 cd $SAMPLE_HOME/src/truck-client
@@ -85,6 +99,8 @@ kafkacat -b streamingplatform:9092 -t truck_driving_info
 ```
 
 ### Producing to MQTT
+
+In a new 
 
 ```
 cd $SAMPLE_HOME/src/truck-client
