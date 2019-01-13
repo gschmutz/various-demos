@@ -1,0 +1,182 @@
+{
+  "type": "record",
+  "name": "Order",
+  "namespace": "com.trivadis.avro.order.v1",
+  "doc": "the order schema",
+  "fields": [
+    {
+      "name": "orderId",
+      "type": "string",
+      "doc": "System generated Order ID"
+    },
+    {
+      "name": "status",
+      "type": {
+        "type": "enum",
+        "name": "OrderStatusEnum",
+        "doc": "Valid order statuses",
+        "symbols": [
+          "SHOPPING_CART",
+          "PROCESSING",
+          "SUCCESS",
+          "DELIVERING",
+          "DELIVERED",
+          "CANCELED"
+        ]
+      }
+    },
+    {
+      "name": "createdAt",
+      "type": "string"
+    },
+    {
+      "name": "updatedAt",
+      "type": "string"
+    },
+    {
+      "name": "totalPrice",
+      "type": "double"
+    },
+    {
+      "name": "discount",
+      "type": "int"
+    },
+    {
+      "name": "currency",
+      "type": {
+        "type": "enum",
+        "name": "CurrencyEnum",
+        "doc": "Valid currencies",
+        "symbols": [
+          "USD",
+          "GBP",
+          "EUR"
+        ]
+      },
+      "doc": "the currency used"
+    },
+    {
+      "name": "items",
+      "type": [
+        "null",
+        {
+          "type": "array",
+          "items": {
+            "type": "record",
+            "name": "Item",
+            "fields": [
+              {
+                "name": "productId",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              {
+                "name": "productCode",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              {
+                "name": "productName",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              {
+                "name": "description",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              {
+                "name": "quantity",
+                "type": [
+                  "int",
+                  "null"
+                ]
+              },
+              {
+                "name": "price",
+                "type": [
+                  "double",
+                  "null"
+                ]
+              },
+              {
+                "name": "size",
+                "type": [
+                  "int",
+                  "null"
+                ]
+              },
+              {
+                "name": "weight",
+                "type": [
+                  "double",
+                  "null"
+                ]
+              },
+              {
+                "name": "dimension",
+                "type": {
+                  "type": "record",
+                  "name": "Dimension",
+                  "fields": [
+                    {
+                      "name": "unit",
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    {
+                      "name": "length",
+                      "type": [
+                        "double",
+                        "null"
+                      ]
+                    },
+                    {
+                      "name": "height",
+                      "type": [
+                        "double",
+                        "null"
+                      ]
+                    },
+                    {
+                      "name": "width",
+                      "type": [
+                        "double",
+                        "null"
+                      ]
+                    }
+                  ]
+                }
+              },
+              {
+                "name": "color",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              {
+                "name": "sku",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              }
+            ]
+          }
+        }
+      ],
+      "doc": "collection of items ordered"
+    }
+  ]
+}

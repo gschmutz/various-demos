@@ -22,6 +22,8 @@ kafka-topics --zookeeper zookeeper:2181 --create --topic customer-v1 --partition
 
 ================================ Metadata ======================================
 
+Change the IP-addresss in 
+
 mvn schema-registry:register
 
 ================================ Console Consumer ======================================

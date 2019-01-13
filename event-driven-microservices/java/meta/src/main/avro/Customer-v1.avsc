@@ -1,6 +1,6 @@
 {
   "type" : "record",
-  "namespace" : "com.soaringclouds.avro.customer.v1",
+  "namespace" : "com.trivadis.avro.customer.v1",
   "name" : "Customer",
   "description" : "the representation of a Customer",
   "fields" : [

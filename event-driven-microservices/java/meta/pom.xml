@@ -99,10 +99,11 @@
     				<version>4.0.0</version>
 				<configuration>
 					<schemaRegistryUrls>
-						<param>http://192.168.25.130:8081</param>
+						<param>http://172.16.10.10:8081</param>
 					</schemaRegistryUrls>
 					<subjects>
-						<product-v1-value>src/main/avro/Customer-v1.avsc</product-v1-value>
+						<customer-v1-value>src/main/avro/Customer-v1.avsc</customer-v1-value>
+						<order-v1-value>src/main/avro/Order-v1.avsc</order-v1-value>
 					</subjects>
 				</configuration>
 				<goals>
