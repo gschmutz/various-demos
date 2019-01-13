@@ -1,0 +1,52 @@
+# Kafka Disaster Recovery Test
+
+version: "2.1"
+
+services:
+  kafka-manager:
+    image: trivadisbds/kafka-manager
+    hostname: kafka-manager
+    ports:
+      - "9000:9000"
+    environment:
+      ZK_HOSTS: 'zookeeper-1:2181'
+      APPLICATION_SECRET: 'letmein' 
+    restart: always
+
+  web:
+    image: elkozmon/zoonavigator-web:0.5.0
+    container_name: zoonavigator-web
+    ports:
+     - "8010:8010"
+    environment:
+      WEB_HTTP_PORT: 8010
+      API_HOST: "api"
+      API_PORT: 9010
+    depends_on:
+     - api
+    restart: always
+    
+  api:
+    image: elkozmon/zoonavigator-api:0.5.0
+    container_name: zoonavigator-api
+    environment:
+      API_HTTP_PORT: 9010
+    restart: always
+
+  kafka-offset-monitor:
+    image: jpodeszwik/kafka-offset-monitor:0.2.1
+    ports:
+      - "8080:8080"
+    environment:
+      ZK: zookeeper-1:2181
+    restart: always
+
+  kafdrop:
+    image: thomsch98/kafdrop:latest
+    ports:
+      - "9020:9020" 
+    environment:
+      ZK_HOSTS: zookeeper-1:2181
+      LISTEN: 9020
+    restart: always
+
