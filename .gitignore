@@ -16,3 +16,17 @@ Servers/Pivotal tc Server Developer Edition v4.0-config/server.xml
 Servers/Pivotal tc Server Developer Edition v4.0-config/tomcat-users.xml
 Servers/Pivotal tc Server Developer Edition v4.0-config/web.xml
 **/.recommenders/**
+iot-truck-simulator/**
+rb-dr-case/zookeeper-1/version-2/acceptedEpoch
+rb-dr-case/zookeeper-1/version-2/currentEpoch
+rb-dr-case/zookeeper-1/version-2/snapshot.300000000
+rb-dr-case/zookeeper-1/version-2/snapshot.5000000f2
+rb-dr-case/zookeeper-2/version-2/acceptedEpoch
+rb-dr-case/zookeeper-2/version-2/currentEpoch
+rb-dr-case/zookeeper-2/version-2/snapshot.100000000
+rb-dr-case/zookeeper-2/version-2/snapshot.200000002
+rb-dr-case/zookeeper-2/version-2/snapshot.5000000f2
+rb-dr-case/zookeeper-3/version-2/acceptedEpoch
+rb-dr-case/zookeeper-3/version-2/currentEpoch
+rb-dr-case/zookeeper-3/version-2/snapshot.200000002
+rb-dr-case/zookeeper-3/version-2/snapshot.5000000f2

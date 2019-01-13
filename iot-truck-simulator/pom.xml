@@ -12,6 +12,7 @@
         <hadoop.miniclusters.version>0.0.15-SNAPSHOT</hadoop.miniclusters.version>
         <scala.version>2.11</scala.version>
         <kafka.version>2.0.0</kafka.version>
+      	<avro.version>1.8.2</avro.version>        
         <akka.version>2.3.16</akka.version>
         <jpmml.version>1.0.22</jpmml.version>
         <commons.csv.version>1.2</commons.csv.version>
@@ -153,7 +154,25 @@
 				</executions>
 
 			</plugin>
-
+			<plugin>
+				<groupId>org.apache.avro</groupId>
+				<artifactId>avro-maven-plugin</artifactId>
+				<version>${avro.version}</version>
+				<executions>
+					<execution>
+						<phase>generate-sources</phase>
+						<goals>
+							<goal>schema</goal>
+							<goal>protocol</goal>
+							<goal>idl-protocol</goal>
+						</goals>
+						<configuration>
+							<fieldVisibility>private</fieldVisibility>
+							<sourceDirectory>${project.basedir}/src/main/avro</sourceDirectory>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
 		</plugins>
 	</build>
 

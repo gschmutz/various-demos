@@ -11,21 +11,19 @@ import org.apache.log4j.Logger;
 
 import com.hortonworks.simulator.impl.domain.transport.MobileEyeEvent;
 
-import akka.actor.UntypedActor;
+public class KafkaSensorEventCollector extends AbstractSensorEventCollector {
 
-public class KafkaSensorEventCollector extends UntypedActor {
-
-	private static final String TOPIC_TRUCK_POSITION = "truck_position";
-	private static final String TOPIC_TRUCK_DRIVING_INFO = "truck_driving_info";
+	static final String TOPIC_TRUCK_POSITION = "truck_position";
+	static final String TOPIC_TRUCK_DRIVING_INFO = "truck_driving_info";
 	private Logger logger = Logger.getLogger(this.getClass());
 
-	private Producer<String, String> producer = null;
+	Producer<String, String> producer = null;
 
 	private Producer<String, String> connect() {
 		Producer<String, String> producer = null;
 
 		Properties props = new Properties();
-		props.put("bootstrap.servers", "localhost:9092");
+		props.put("bootstrap.servers", Lab.broker + ":" + Lab.port);
 		props.put("acks", "all");
 		props.put("retries", 0);
 	    props.put("key.serializer", "org.apache.kafka.common.serialization.StringSerializer");
@@ -47,7 +45,25 @@ public class KafkaSensorEventCollector extends UntypedActor {
 
 	}
 
-	private void sendMessage(ProducerRecord<String, String> record) {
+	@Override
+	protected String getTopicName(Integer eventKind, MobileEyeEvent originalEvent) {
+		String topicName = null;
+		if (eventKind.equals(MobileEyeEvent.EVENT_KIND_BEHAVIOUR_AND_POSITION)) {
+			topicName = TOPIC_TRUCK_POSITION;
+		} else if (eventKind.equals(MobileEyeEvent.EVENT_KIND_POSITION)) {
+			topicName = TOPIC_TRUCK_POSITION;
+		} else if (eventKind.equals(MobileEyeEvent.EVENT_KIND_BEHAVIOUR)) {
+			topicName = TOPIC_TRUCK_DRIVING_INFO;
+		}
+		return topicName;	
+	}
+
+	@Override
+	protected void sendMessage(String topicName, MobileEyeEvent originalEvent, Object message) {
+		String truckId = String.valueOf(originalEvent.getTruck().getTruckId());
+		
+		ProducerRecord<String, String> record = new ProducerRecord<String, String>(topicName, truckId, (String)message);
+
 		if (producer != null) {
 			try {
 				Future<RecordMetadata> future = producer.send(record);
@@ -57,48 +73,5 @@ public class KafkaSensorEventCollector extends UntypedActor {
 				e.printStackTrace();
 			}
 		}
-	}
-	
-	@Override
-	public void onReceive(Object event) throws Exception {
-		MobileEyeEvent mee = (MobileEyeEvent) event;
-		String eventToPass = null;
-
-		String truckId = String.valueOf(mee.getTruck().getTruckId());
-
-		ProducerRecord<String, String> record = null;
-		
-		if (Lab.mode.equals(Lab.COMBINE)) {
-			if (Lab.format.equals(Lab.JSON)) {
-		        eventToPass = mee.toJSON(MobileEyeEvent.EVENT_KIND_BEHAVIOUR_AND_POSITION, Lab.timeResolution);
-		    } else if (Lab.format.equals(Lab.CSV)) {
-		        eventToPass = mee.toCSV(MobileEyeEvent.EVENT_KIND_BEHAVIOUR_AND_POSITION, Lab.timeResolution);
-		    }
-			record = new ProducerRecord<String, String>(TOPIC_TRUCK_POSITION, truckId, eventToPass);
-			sendMessage(record);
-		} else if (Lab.mode.equals(Lab.SPLIT)) {
-			if (Lab.format.equals(Lab.JSON)) {
-		        eventToPass = mee.toJSON(MobileEyeEvent.EVENT_KIND_BEHAVIOUR, Lab.timeResolution);
-		    } else if (Lab.format.equals(Lab.CSV)) {
-		        eventToPass = mee.toCSV(MobileEyeEvent.EVENT_KIND_BEHAVIOUR, Lab.timeResolution);
-		    }
-			
-			Thread.sleep((long)(Math.random() * 200));
-
-			record = new ProducerRecord<String, String>(TOPIC_TRUCK_DRIVING_INFO, truckId, eventToPass);
-			sendMessage(record);
-
-			if (Lab.format.equals(Lab.JSON)) {
-		        eventToPass = mee.toJSON(MobileEyeEvent.EVENT_KIND_POSITION, Lab.timeResolution);
-		    } else if (Lab.format.equals(Lab.CSV)) {
-		        eventToPass = mee.toCSV(MobileEyeEvent.EVENT_KIND_POSITION, Lab.timeResolution);
-		    }
-
-			record = new ProducerRecord<String, String>(TOPIC_TRUCK_POSITION, truckId, eventToPass);
-			sendMessage(record);
-		}
-		
-
-
 	}
 }

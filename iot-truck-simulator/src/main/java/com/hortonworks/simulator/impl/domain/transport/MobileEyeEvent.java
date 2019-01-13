@@ -71,8 +71,8 @@ public class MobileEyeEvent extends Event {
 		msg.append("\"timestamp\":" + new Date().getTime() * timeFactor);
 		msg.append(",");
 		msg.append("\"truckId\":" + truck.getTruckId());
-		msg.append(",");
 		if (eventKind.equals(EVENT_KIND_BEHAVIOUR_AND_POSITION) || eventKind.equals(EVENT_KIND_BEHAVIOUR)) {
+			msg.append(",");
 			msg.append("\"driverId\":" + truck.getDriver().getDriverId());
 			msg.append(",");
 			msg.append("\"routeId\":" + truck.getDriver().getRoute().getRouteId());
@@ -87,9 +87,7 @@ public class MobileEyeEvent extends Event {
 			msg.append(",");
 			msg.append("\"longitude\":" + location.getLongitude());
 		}
-//		if (eventKind.equals(EVENT_KIND_BEHAVIOUR_AND_POSITION) || eventKind.equals(EVENT_KIND_BEHAVIOUR)) {
-//			msg.append("\"correlationId\":\"" + correlationId + "\"");
-//		}
+
 		msg.append("}");
 		return msg.toString();
 	}

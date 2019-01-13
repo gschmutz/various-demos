@@ -45,6 +45,7 @@ public class Lab {
 	public static final boolean ALL = false;
 	public static final boolean COMPACT = true;
 
+	public static final String STDOUT = "stdout";
 	public static final String KAFKA = "kafka";
 	public static final String MQTT = "mqtt";
 	
@@ -58,6 +59,7 @@ public class Lab {
 	public static final String TIME_RESOLUTION_MS = "millisec";
 	public static final String TIME_RESOLUTION_S = "sec";
 
+	public static String broker = "";
 	public static String format = CSV;
 	public static String port = "";
 	public static String mode = COMBINE;
@@ -91,10 +93,10 @@ public class Lab {
 				sink = null;
 				sink = nextArg(argv, flag).toLowerCase();
 				break;
-			case BROKER_NAME_SHORT_FLAG:
-			case BROKER_NAME_LONG_FLAG:
-				sink = null;
-				sink = nextArg(argv, flag).toLowerCase();
+			case BROKER_ADDRESS_SHORT_FLAG:
+			case BROKER_ADDRESS_LONG_FLAG:
+				broker = null;
+				broker = nextArg(argv, flag).toLowerCase();
 				break;
 			case FORMAT_NAME_SHORT_FLAG:
 			case FORMAT_NAME_LONG_FLAG:
@@ -134,6 +136,8 @@ public class Lab {
 			sensorEventsParam.setEventCollectorClassName("com.hortonworks.solution.KafkaSensorEventCollector");
 		} else if (sink.equals(MQTT)) {
 			sensorEventsParam.setEventCollectorClassName("com.hortonworks.solution.MQTTSensorEventCollector");
+		} else if (sink.equals(STDOUT)) {
+			sensorEventsParam.setEventCollectorClassName("com.hortonworks.solution.StdOutSensorEventCollector");
 		}
 		sensorEventsParam.setNumberOfEvents(1000);
 		sensorEventsParam.setDelayBetweenEvents(2000);
