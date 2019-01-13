@@ -10,7 +10,7 @@ services:
       - "9000:9000"
     environment:
       ZK_HOSTS: 'zookeeper-1:2181'
-      APPLICATION_SECRET: 'letmein' 
+      APPLICATION_SECRET: 'letmein'
     restart: always
 
   web:
@@ -25,7 +25,6 @@ services:
     depends_on:
      - api
     restart: always
-    
   api:
     image: elkozmon/zoonavigator-api:0.5.0
     container_name: zoonavigator-api
@@ -44,9 +43,8 @@ services:
   kafdrop:
     image: thomsch98/kafdrop:latest
     ports:
-      - "9020:9020" 
+      - "9020:9020"
     environment:
       ZK_HOSTS: zookeeper-1:2181
       LISTEN: 9020
     restart: always
-
