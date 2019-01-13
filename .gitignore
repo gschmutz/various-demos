@@ -30,3 +30,4 @@ rb-dr-case/zookeeper-3/version-2/acceptedEpoch
 rb-dr-case/zookeeper-3/version-2/currentEpoch
 rb-dr-case/zookeeper-3/version-2/snapshot.200000002
 rb-dr-case/zookeeper-3/version-2/snapshot.5000000f2
+event-driven-microservices/Servers/Pivotal tc Server Developer Edition v4.0-config/**
