@@ -62,7 +62,7 @@ public class KafkaStreamsExampleJSON {
         final Deserializer<JsonNode> jsonDeserializer = new JsonDeserializer();
         final Serde<JsonNode> jsonSerde = Serdes.serdeFrom(jsonSerializer, jsonDeserializer);
 		
-	    final String bootstrapServers = args.length > 0 ? args[0] : "192.168.69.135:9092";
+	    final String bootstrapServers = args.length > 0 ? args[0] : "localhost:9092";
 	    final Properties streamsConfiguration = new Properties();
 	    // Give the Streams application a unique name.  The name must be unique in the Kafka cluster
 	    // against which the application is run.
@@ -99,16 +99,6 @@ public class KafkaStreamsExampleJSON {
         
         final Serde<TruckPosition> truckPositionSerde = Serdes.serdeFrom(truckPositionSerializer, truckPositionDeserializer);
 
-        final Serializer<Driver> driverSerializer = new JsonPOJOSerializer<>();
-        serdeProps.put("JsonPOJOClass", Driver.class);
-        driverSerializer.configure(serdeProps, false);
-
-        final Deserializer<Driver> driverDeserializer = new JsonPOJODeserializer<>();
-        serdeProps.put("JsonPOJOClass", Driver.class);
-        driverDeserializer.configure(serdeProps, false);
-        
-        final Serde<Driver> driverSerde = Serdes.serdeFrom(driverSerializer, driverDeserializer);
-
         final Serializer<TruckPositionDriver> truckPositionDriverSerializer = new JsonPOJOSerializer<>();
         serdeProps.put("JsonPOJOClass", Driver.class);
         truckPositionDriverSerializer.configure(serdeProps, false);
@@ -116,14 +106,12 @@ public class KafkaStreamsExampleJSON {
         final Deserializer<TruckPositionDriver> truckPositionDriverDeserializer = new JsonPOJODeserializer<>();
         serdeProps.put("JsonPOJOClass", Driver.class);
         truckPositionDriverDeserializer.configure(serdeProps, false);
-        
-        final Serde<TruckPositionDriver> truckPositionDriverSerde = Serdes.serdeFrom(truckPositionDriverSerializer, truckPositionDriverDeserializer);
-        
+                
 		/*
 		 * Consume TruckPositions data from Kafka topic
 		 */
 		KStream<String, TruckPosition> positions = builder.stream("truck_position", Consumed.with(Serdes.String(), truckPositionSerde));
-
+//		positions.print(Printed.toSysOut());
 
 		/*
 		 * Non stateful transformation => filter out normal behaviour
@@ -140,51 +128,6 @@ public class KafkaStreamsExampleJSON {
 		KStream<String, TruckPosition> filteredRekeyed = filtered
 				.selectKey((key,value) -> value.driverId.toString());
 		
-		/*
-		 * Consume Driver data including changes from trucking_driver Kafka topic
-		 */
-        KTable<String, Driver> driver = builder.table("trucking_driver"
-        											, Consumed.with(Serdes.String(), driverSerde)
-        											, Materialized.as("trucking-driver-store-name"));	
-		// just for debugging
-		//driver.toStream().print(Printed.toSysOut());
-
-        /*
-		 * Join Truck Position Stream with Driver data
-		 */
-		KStream<String, TruckPositionDriver> joined = filteredRekeyed
-									.leftJoin(driver
-												, (left,right) -> new TruckPositionDriver(left
-																						, (right != null) ? right.first_name : "unknown"
-																						, (right != null) ? right.last_name : "unkown")
-												, Joined.with(Serdes.String(), truckPositionSerde, driverSerde));
-		
-		/*
-		 * Write joined data to Kafka topic
-		 */
-		joined.to("dangerous_driving_kafka", Produced.with(Serdes.String(), truckPositionDriverSerde));
-		// just for debugging
-		//joined.print(Printed.toSysOut());
-
-		/*
-		 * Group by event type without window, !!!included in the statement below!!!
-		 */
-		KGroupedStream<String,TruckPosition> truckPositionByEventType = filtered
-				.groupBy((key,value) -> value.eventType, Serialized.with(Serdes.String(), truckPositionSerde));
-		
-		/*
-		 * Count by Event Type over a window of 1 minutes sliding 30 seconds 
-		 */
-		long windowSizeMs = TimeUnit.MINUTES.toMillis(1);
-		long advanceMs = TimeUnit.SECONDS.toMillis(30); 
-		KTable<Windowed<String>, Long> countByEventType = filtered
-				.groupBy((key,value) -> value.eventType, Serialized.with(Serdes.String(), truckPositionSerde))
-			    .windowedBy(TimeWindows.of(windowSizeMs).advanceBy(advanceMs))
-				.count(Materialized.as("RollingSevenDaysOfPageViewsByRegion"));
-		
-		
-		// same as: xxx.foreach((key, value) -> System.out.println(key + ", " + value))
-		//countByEventType.toStream().print(Printed.toSysOut());
 		
 		// used to be new KafkaStreams(build, streamsConfiguration)
 		final KafkaStreams streams = new KafkaStreams(builder.build(), streamsConfiguration);
