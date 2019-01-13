@@ -1,5 +1,6 @@
 #!/bin/bash
 
+cd data
 rm -R *
 mkdir kafka-1
 mkdir kafka-2
