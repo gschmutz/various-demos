@@ -13,7 +13,7 @@ curl -X "POST" "$DOCKER_HOST_IP:8083/connectors" \
   "config": {
     "connector.class": "io.confluent.connect.mqtt.MqttSourceConnector",
     "tasks.max": "1",
-    "mqtt.server.uri": "tcp://mosquitto:1883",
+    "mqtt.server.uri": "tcp://mosquitto-1:1883",
     "mqtt.topics": "truck/+/position",
     "kafka.topic":"truck_position",
     "mqtt.clean.session.enabled":"true",

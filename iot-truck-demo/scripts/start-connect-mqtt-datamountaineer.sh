@@ -22,6 +22,6 @@ curl -X "POST" "$DOCKER_HOST_IP:8083/connectors" \
     "connect.mqtt.connection.keep.alive": "1000",
     "connect.mqtt.client.id": "tm-mqtt-connect-01",
     "connect.mqtt.converter.throw.on.error": "true",
-    "connect.mqtt.hosts": "tcp://mosquitto:1883"
+    "connect.mqtt.hosts": "tcp://mosquitto-1:1883"
   }
   }'
