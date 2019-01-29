@@ -1,10 +1,9 @@
-# Demo NLOUG Tech
-
+# 
 version: "2.1"
 
 services:
   zookeeper:
-    image: confluentinc/cp-zookeeper:5.0.0
+    image: confluentinc/cp-zookeeper:5.1.0
     hostname: zookeeper
     ports:
       - "2181:2181"
@@ -14,7 +13,7 @@ services:
     restart: always
 
   broker-1:
-    image: confluentinc/cp-enterprise-kafka:5.0.0
+    image: confluentinc/cp-enterprise-kafka:5.1.0
     hostname: broker-1
     depends_on:
       - zookeeper
@@ -40,7 +39,7 @@ services:
     restart: always
 
   broker-2:
-    image: confluentinc/cp-enterprise-kafka:5.0.0
+    image: confluentinc/cp-enterprise-kafka:5.1.0
     hostname: broker-2
     depends_on:
       - zookeeper
@@ -66,7 +65,7 @@ services:
     restart: always
 
   broker-3:
-    image: confluentinc/cp-enterprise-kafka:5.0.0
+    image: confluentinc/cp-enterprise-kafka:5.1.0
     hostname: broker-3
     depends_on:
       - zookeeper
@@ -99,11 +98,12 @@ services:
      
   db:
     image: mysql:5.6
+    hostname: db
     environment:
       MYSQL_ROOT_PASSWORD: "root"
-      MYSQL_USER: "sample"
-      MYSQL_PASSWORD: "sample"
-      MYSQL_DATABASE: "sample"
+      MYSQL_USER: "osa"
+      MYSQL_PASSWORD: "osa"
+      MYSQL_DATABASE: "osa"
     ports:
       - 3306:3306 
     restart: always
@@ -115,8 +115,17 @@ services:
       - "18630:18630"
     restart: always
 
+  osa:
+    image: gschmutz/osa:latest
+    hostname: osa
+    ports:
+      - 9080:9080
+    depends_on:
+      - db
+    restart: always
+
   master:
-    image: gettyimages/spark:2.2.1-hadoop-2.7
+    image: gschmutz/spark:2.2.1-hadoop-2.7
     command: bin/spark-class org.apache.spark.deploy.master.Master -h master
     hostname: master
     environment:
@@ -142,7 +151,7 @@ services:
     restart: always
 
   worker-1:
-    image: gettyimages/spark:2.2.1-hadoop-2.7
+    image: gschmutz/spark:2.2.1-hadoop-2.7
     command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://master:7077
     hostname: worker-1
     environment:
@@ -168,7 +177,7 @@ services:
     restart: always
 
   worker-2:
-    image: gettyimages/spark:2.2.1-hadoop-2.7
+    image: gschmutz/spark:2.2.1-hadoop-2.7
     command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://master:7077
     hostname: worker-2
     environment:
@@ -233,152 +242,5 @@ services:
     environment:
       - NAMENODE_HOST=namenode    
     restart: always
-    
-  schema-registry:
-    image: "confluentinc/cp-schema-registry:5.0.0"
-    hostname: schema-registry
-    depends_on:
-      - zookeeper
-      - broker-1
-    ports:
-      - '8081:8081'
-    environment:
-      SCHEMA_REGISTRY_HOST_NAME: schema-registry
-      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: zookeeper:2181
 
 
-  # Runs the Kafka KSQL data generator for topic called "pageviews"
-  ksql-datagen-pageviews:
-    image: "confluentinc/ksql-examples:0.5"
-    hostname: ksql-datagen-pageviews
-    depends_on:
-      - broker-1
-      - schema-registry
-    # Note: The container's `run` script will perform the same readiness checks
-    # for Kafka and Confluent Schema Registry, but that's ok because they complete fast.
-    # The reason we check for readiness here is that we can insert a sleep time
-    # for topic creation before we start the application.
-    command: "bash -c 'echo Waiting for Kafka to be ready... && \
-                       cub kafka-ready -b broker-1:9092 1 20 && \
-                       echo Waiting for Confluent Schema Registry to be ready... && \
-                       cub sr-ready schema-registry 8081 20 && \
-                       echo Waiting a few seconds for topic creation to finish... && \
-                       sleep 2 && \
-                       java -jar /usr/share/java/ksql-examples/ksql-examples-4.1.0-SNAPSHOT-standalone.jar
-                       quickstart=pageviews format=delimited topic=pageviews bootstrap-server=broker-1:9092 maxInterval=100 iterations=1000 && \
-                       java -jar /usr/share/java/ksql-examples/ksql-examples-4.1.0-SNAPSHOT-standalone.jar
-                       quickstart=pageviews format=delimited topic=pageviews bootstrap-server=broker-1:9092 maxInterval=1000'"
-    environment:
-      KSQL_CONFIG_DIR: "/etc/ksql"
-      KSQL_LOG4J_OPTS: "-Dlog4j.configuration=file:/etc/ksql/log4j-rolling.properties"
-      STREAMS_BOOTSTRAP_SERVERS: broker-1:9092
-      STREAMS_SCHEMA_REGISTRY_HOST: schema-registry
-      STREAMS_SCHEMA_REGISTRY_PORT: 8081
-
-
-  # Runs the Kafka KSQL data generator for topic called "clickstream"
-  ksql-datagen-clickstream:
-    image: "confluentinc/ksql-examples:0.5"
-    hostname: ksql-datagen-clickstream
-    depends_on:
-      - broker-1
-      - schema-registry
-    # Note: The container's `run` script will perform the same readiness checks
-    # for Kafka and Confluent Schema Registry, but that's ok because they complete fast.
-    # The reason we check for readiness here is that we can insert a sleep time
-    # for topic creation before we start the application.
-    command: "bash -c 'echo Waiting for Kafka to be ready... && \
-                       cub kafka-ready -b broker-1:9092 1 20 && \
-                       echo Waiting for Confluent Schema Registry to be ready... && \
-                       cub sr-ready schema-registry 8081 20 && \
-                       echo Waiting a few seconds for topic creation to finish... && \
-                       sleep 2 && \
-                       java -jar /usr/share/java/ksql-examples/ksql-examples-4.1.0-SNAPSHOT-standalone.jar
-                       quickstart=clickstream format=json topic=clickstream bootstrap-server=broker-1:9092 maxInterval=100 iterations=500000'"
-    environment:
-      KSQL_CONFIG_DIR: "/etc/ksql"
-      KSQL_LOG4J_OPTS: "-Dlog4j.configuration=file:/etc/ksql/log4j-rolling.properties"
-      STREAMS_BOOTSTRAP_SERVERS: broker-1:29092
-      STREAMS_SCHEMA_REGISTRY_HOST: schema-registry
-      STREAMS_SCHEMA_REGISTRY_PORT: 8081
-
-  # Runs the Kafka KSQL data generator for topic called "clickstream_codes"
-  ksql-datagen-clickstream_codes:
-    image: "confluentinc/ksql-examples:0.5"
-    hostname: ksql-datagen-clickstream_codes
-    depends_on:
-      - broker-1
-      - schema-registry
-    # Note: The container's `run` script will perform the same readiness checks
-    # for Kafka and Confluent Schema Registry, but that's ok because they complete fast.
-    # The reason we check for readiness here is that we can insert a sleep time
-    # for topic creation before we start the application.
-    command: "bash -c 'echo Waiting for Kafka to be ready... && \
-                       cub kafka-ready -b broker-1:9092 1 20 && \
-                       echo Waiting for Confluent Schema Registry to be ready... && \
-                       cub sr-ready schema-registry 8081 20 && \
-                       echo Waiting a few seconds for topic creation to finish... && \
-                       sleep 2 && \
-                       java -jar /usr/share/java/ksql-examples/ksql-examples-4.1.0-SNAPSHOT-standalone.jar
-                       quickstart=clickstream_codes format=json topic=clickstream_codes bootstrap-server=broker-1:9092 maxInterval=20 iterations=1000'"
-    environment:
-      KSQL_CONFIG_DIR: "/etc/ksql"
-      KSQL_LOG4J_OPTS: "-Dlog4j.configuration=file:/etc/ksql/log4j-rolling.properties"
-      STREAMS_BOOTSTRAP_SERVERS: broker-1:9092
-      STREAMS_SCHEMA_REGISTRY_HOST: schema-registry
-      STREAMS_SCHEMA_REGISTRY_PORT: 8081
-
-
-  # Runs the Kafka KSQL data generator for topic called "clickstream_codes"
-  ksql-datagen-clickstream_users:
-    image: "confluentinc/ksql-examples:0.5"
-    hostname: ksql-datagen-clickstream_users
-    depends_on:
-      - broker-1
-      - schema-registry
-    # Note: The container's `run` script will perform the same readiness checks
-    # for Kafka and Confluent Schema Registry, but that's ok because they complete fast.
-    # The reason we check for readiness here is that we can insert a sleep time
-    # for topic creation before we start the application.
-    command: "bash -c 'echo Waiting for Kafka to be ready... && \
-                       cub kafka-ready -b broker-1:9092 1 20 && \
-                       echo Waiting for Confluent Schema Registry to be ready... && \
-                       cub sr-ready schema-registry 8081 20 && \
-                       echo Waiting a few seconds for topic creation to finish... && \
-                       sleep 2 && \
-                       java -jar /usr/share/java/ksql-examples/ksql-examples-4.1.0-SNAPSHOT-standalone.jar
-                       quickstart=clickstream_users format=json topic=clickstream_users bootstrap-server=broker-1:9092 maxInterval=10 iterations=1000'"
-    environment:
-      KSQL_CONFIG_DIR: "/etc/ksql"
-      KSQL_LOG4J_OPTS: "-Dlog4j.configuration=file:/etc/ksql/log4j-rolling.properties"
-      STREAMS_BOOTSTRAP_SERVERS: broker-1:9092
-      STREAMS_SCHEMA_REGISTRY_HOST: schema-registry
-      STREAMS_SCHEMA_REGISTRY_PORT: 8081
-
-  # Runs the Kafka KSQL application
-  ksql-rest:
-    image: "confluentinc/ksql-cli:0.5"
-    hostname: ksql-rest
-    ports:
-      - '8085:8085'
-    depends_on:
-      - broker-1
-      - schema-registry
-      - ksql-datagen-clickstream
-      - ksql-datagen-clickstream_codes
-      - ksql-datagen-clickstream_users
-    command: "bash -c 'cd /usr/bin/ && mkdir ui && cd ui &&  wget https://s3.amazonaws.com/ksql-experimental-ui/ksql-experimental-ui-0.1.war && \
-   										 echo bootstrap.servers=broker-1:9092 > /etc/ksql/ksqlserver.properties ; \
-                       echo application.id=ksql_server_quickstart >> /etc/ksql/ksqlserver.properties ; \
-                       echo ksql.command.topic.suffix=commands >> /etc/ksql/ksqlserver.properties ; \
-                       echo listeners=http://0.0.0.0:8085 >> /etc/ksql/ksqlserver.properties ; \
-                       echo ui.enabled=true >> /etc/ksql/ksqlserver.properties ; \
-                       pushd /tmp && wget http://get.arcadiadata.com/ksql/clickstream-schema.sql && popd && \
-                       cd .. && /usr/bin/ksql-server-start /etc/ksql/ksqlserver.properties'"
-    environment:
-      KSQL_CONFIG_DIR: "/etc/ksql"
-      KSQL_LOG4J_OPTS: "-Dlog4j.configuration=file:/etc/ksql/log4j-rolling.properties"
-      STREAMS_BOOTSTRAP_SERVERS: broker-1:9092
-      STREAMS_SCHEMA_REGISTRY_HOST: schema-registry
-      STREAMS_SCHEMA_REGISTRY_PORT: 8081
-    

@@ -15,6 +15,7 @@ Copy the spark-osa.jar into the two spark workers (workaround)
 docker cp spark-osa.jar oracle-stream-analytics_worker-1_1:/usr/spark-2.2.1/jars
 docker cp spark-osa.jar oracle-stream-analytics_worker-2_1:/usr/spark-2.2.1/jars
 ```
+
 ## Create the Kafka Topics
 
 list topics and create the new topics
@@ -39,7 +40,7 @@ cd $SAMPLE_HOME/src/truck-client
 ```
 
 ```
-mvn exec:java -Dexec.args="-s KAFKA -f JSON -m COMBINE -t sec"
+mvn exec:java -Dexec.args="-s KAFKA -p 9092 -f JSON -m COMBINE -t sec"
 ```
 
 ## Starting OSA
