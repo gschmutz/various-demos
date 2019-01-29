@@ -1,0 +1,15 @@
+{
+    "namespace" : "com.test.avro",
+    "type" : "record",
+    "name" : "Movie",
+    "fields" : [ 
+	    {
+	      "name" : "name",
+	      "type" : "string"
+	    }, 
+	    {
+	      "name" : "abbreviation",
+	      "type" : "string"
+	    } 
+    ]
+}
