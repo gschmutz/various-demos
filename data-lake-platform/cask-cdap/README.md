@@ -1,26 +1,29 @@
 ### Cask CDAP
 
-export DOCKER_HOST_IP=
+```
+export DOCKER_HOST_IP=nnn.nnn.nnn.nnnn
 export PUBLIC_HOST_IP=
-
-```
-export SAMPLE_HOME=/mnt/hgfs/git/gschmutz/various-demos/kylo
 ```
 
 ```
-cd $SAMPLE_HOME/docker
+cd $VARIOUS_DEMOS/data-lake-platform/cask-cdap/docker
 ```
 
 ```
 docker-compose up -d
 ```
 
-```
-docker pull caskdata/cdap-sandbox
-```
+to connect a terminal to the CDAP environment
 
 ```
-docker run -d --name cdap-sandbox -p 11011:11011 -p 11015:11015 caskdata/cdap-sandbox:latest
+docker exec -ti docker_cdap_1 bash
+
+cd /
+mkdir datalake
+cd /datalake
+mkdir poc 
 ```
+
+
 
 * CDAP UI: <http://cdap:11011>

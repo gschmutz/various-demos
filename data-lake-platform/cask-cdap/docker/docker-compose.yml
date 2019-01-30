@@ -1,4 +1,4 @@
-# Demo NLOUG Tech
+# CASK CDAP
 
 version: "2.1"
 
@@ -62,7 +62,7 @@ services:
       - "11011:11011"
       - "11015:11015"
     volumes:
-      - ./data/cdap-localfile:/Root/home/data
+      - ./volume/cdap-localfile:/Root/home/data
     restart: always
    
   adminer:
@@ -84,7 +84,7 @@ services:
     ports:
       - 3306:3306
     volumes:
-#      - ./data/mysql:/var/lib/mysql:rw
+#      - ./volume/mysql:/var/lib/mysql:rw
       - ./scripts/mysql/demo.sql:/docker-entrypoint-initdb.d/demo.sql:ro
     environment:
       MYSQL_ALLOW_EMPTY_PASSWORD: "yes"

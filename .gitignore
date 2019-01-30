@@ -1,5 +1,4 @@
 
-**/docker
 **/.classpath
 **/.project
 **/.settings
@@ -16,9 +15,12 @@ Servers/Pivotal tc Server Developer Edition v4.0-config/server.xml
 Servers/Pivotal tc Server Developer Edition v4.0-config/tomcat-users.xml
 Servers/Pivotal tc Server Developer Edition v4.0-config/web.xml
 **/.recommenders/**
-**/data/**
 **/.idea/**
+**/volume/**
 rb-dr-case/zookeeper-1/**
 rb-dr-case/zookeeper-2/**
 rb-dr-case/zookeeper-3/**
 event-driven-microservices/Servers/Pivotal tc Server Developer Edition v4.0-config/**
+graph-performance/des-graph-test/dse-graph-test.iml
+graph-performance/des-graph-test/dse-graph-test.ipr
+graph-performance/des-graph-test/dse-graph-test.iws
