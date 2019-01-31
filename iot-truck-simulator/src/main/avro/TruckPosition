@@ -1,0 +1,20 @@
+{
+  "type" : "record",
+  "namespace" : "com.trivadis.kafkaws.avro.v1",
+  "name" : "Notification",
+  "description" : "A simple Notification Event message",
+  "fields" : [
+        { "type" : ["long", "null"],
+          "name" : "timestamp"
+        },
+        { "type" : ["string", "null"],
+          "name" : "truckId"
+        },
+        { "type" : ["double", "null"],
+          "name" : "latitude"
+        },
+        { "type" : ["double", "null"],
+          "name" : "longitude"
+        }          
+  ]
+ }
