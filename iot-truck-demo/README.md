@@ -24,7 +24,7 @@ export SAMPLE_HOME=/mnt/hgfs/git/gschmutz/various-demos/iot-truck-demo
 Add `streamingplatform` as an alias to the `/etc/hosts` file on the machine you are using to run the demo on.
 
 ```
-192.168.25.136	streamingplatform
+192.168.25.136	analyticsplatform
 ```
 
 Now we can start the environment. Navigate to the `docker` sub-folder inside the SAMPLE_HOME folder. 
@@ -47,11 +47,11 @@ docker-compose logs -f
 
 The following user interfaces are available:
 
- * Confluent Control Center: <http://streamingplatform:9021>
- * Kafka Manager: <http://streamingplatform:9000> 
- * Schema Registry UI: <http://streamingplatform:8002>
- * Kafka Connect UI: <http://streamingplatform:8003>
- * StreamSets Data Collector: <http://streamingplatform:18630>
+ * Confluent Control Center: <http://analyticsplatform:9021>
+ * Kafka Manager: <http://analyticsplatform:9000> 
+ * Schema Registry UI: <http://analyticsplatform:8002>
+ * Kafka Connect UI: <http://analyticsplatform:8003>
+ * StreamSets Data Collector: <http://analyticsplatform:18630>
 
 ### Creating the necessary Kafka Topics
 
@@ -60,23 +60,23 @@ The Kafka cluster is configured with `auto.topic.create.enable` set to `false`. 
 We can easily get access to the `kafka-topics` CLI by navigating into one of the containers for the 3 Kafka Borkers. Let's use `broker-1`
 
 ```
-docker exec -ti docker_broker-1_1 bash
+docker exec -ti broker-1 bash
 ```
 
 First lets see all existing topics
 
 ```
-kafka-topics --zookeeper zookeeper:2181 --list
+kafka-topics --zookeeper zookeeper-1:2181 --list
 ```
 
 And now create the topics `truck_position`, `dangerous_driving_and_driver ` and `truck_driver`.
 
 ```
-kafka-topics --zookeeper zookeeper:2181 --create --topic truck_position --partitions 8 --replication-factor 2
-kafka-topics --zookeeper zookeeper:2181 --create --topic dangerous_driving --partitions 8 --replication-factor 2
-kafka-topics --zookeeper zookeeper:2181 --create --topic dangerous_driving_and_driver --partitions 8 --replication-factor 2
+kafka-topics --zookeeper zookeeper-1:2181 --create --topic truck_position --partitions 8 --replication-factor 2
+kafka-topics --zookeeper zookeeper-1:2181 --create --topic dangerous_driving --partitions 8 --replication-factor 2
+kafka-topics --zookeeper zookeeper-1:2181 --create --topic dangerous_driving_and_driver --partitions 8 --replication-factor 2
 
-kafka-topics --zookeeper zookeeper:2181 --create --topic truck_driver --partitions 8 --replication-factor 2 --config cleanup.policy=compact --config segment.ms=100 --config delete.retention.ms=100 --config min.cleanable.dirty.ratio=0.001
+kafka-topics --zookeeper zookeeper-1:2181 --create --topic truck_driver --partitions 8 --replication-factor 2 --config cleanup.policy=compact --config segment.ms=100 --config delete.retention.ms=100 --config min.cleanable.dirty.ratio=0.001
 ```
 
 ### Prepare Database Table
@@ -88,7 +88,7 @@ The infrastructure we have started above also conains an instance of Postgresql 
 Let's connect to that container 
 
 ```
-docker exec -ti docker_db_1 bash
+docker exec -ti postgresql bash
 ```
 
 and run the `psql` command line utility. 
@@ -131,12 +131,14 @@ INSERT INTO "driver" ("id", "first_name", "last_name", "available", "birthdate",
 ```
 ## (1) Truck Simulator
 
+For simulating truck data, we are going to use a Java program (adapted from Hortonworks) and maintained in this [GitHub project](https://github.com/TrivadisBDS/various-bigdata-prototypes/tree/master/streaming-sources/iot-truck-simulator/impl).
+
 ### Producing to Kafka
 
 Start the kafka console consumer on the Kafka topic `truck_position `:
  
 ```
-docker exec -ti docker_broker-1_1 bash
+docker exec -ti broker-1 bash
 ```
 
 ```
@@ -146,29 +148,21 @@ kafka-console-consumer --bootstrap-server broker-1:9092 --topic truck_position
 or by using kafkacat (using the quiet option):
 
 ```
-kafkacat -b streamingplatform:9092 -t truck_position -q
+kafkacat -b analyticsplatform:9092 -t truck_position -q
 ```
 
 Produce the IoT Truck events to topic `truck_position `.
 
 ```
-cd $SAMPLE_HOME/../iot-truck-simulator
-```
-
-```
-mvn exec:java -Dexec.args="-s KAFKA -f CSV -t sec -b localhost -p 9092"
+docker run trivadisbds/iot-truck-simulator '-s' 'KAFKA' '-h' $DOCKER_HOST_IP '-p' '9092' '-f' 'CSV' "-t" "sec"
 ```
 
 ### Producing to MQTT
 
-```
-cd $SAMPLE_HOME/../iot-truck-simulator
-```
-
 To produce to topic on MQTT broker on port 1883 (mosquitto)
 
 ```
-mvn exec:java -Dexec.args="-s MQTT -f CSV -p 1883 -t millisec"
+docker run trivadisbds/iot-truck-simulator '-s' 'MQTT' '-h' $DOCKER_HOST_IP '-p' '1883' '-f' 'CSV'
 ```
 
 in MQTT.fx suscribe to `truck/+/drving_info`
@@ -221,14 +215,14 @@ mvn exec:java -Dexec.args="-s MQTT -f CSV -p 1884 -m SPLIT -t millisec"
 
 
 ## (5) Using KSQL for Stream Analytics
+
 ### Connect to KSQL CLI
 
 
 First let's connect to the KSQL CLI
 
 ```
-cd $SAMPLE_HOME/docker
-docker-compose exec ksql-cli ksql http://ksql-server:8088
+docker run -it --network analyticsplatform_default confluentinc/cp-ksql-cli http://ksql-server-1:8088
 ```
 
 Show the available Kafka topics
@@ -253,6 +247,9 @@ show queries;
 ```
 
 ### Basic Streaming Query
+
+Create a KSQL STREAM object on the `truck_position`
+
 ```
 DROP STREAM IF EXISTS truck_position_s;
 
@@ -269,7 +266,7 @@ CREATE STREAM truck_position_s \
         value_format='DELIMITED');
 ```
 
-Get info on the stream
+Get info on the stream using the `DESCRIBE` command
 
 ```
 DESCRIBE truck_position_s;
@@ -311,14 +308,14 @@ SELECT * FROM truck_position_s WHERE eventType != 'Normal';
 1539712120102 | truck/31/position | null | 31 | 12 | 927636994 | Unsafe following distance | 38.22 | -91.18 | -6187001306629414077
 ```
 
-### (6) Create a new Stream with the result
+## (6) Create a new Stream based on the KSQL SELECT
 
 Let's provide the data as a topic:
 
 First create a topic where all "dangerous driving" events should be sent to
 	
 ```
-kafka-topics --zookeeper zookeeper:2181 --create --topic dangerous_driving --partitions 8 --replication-factor 2
+docker exec broker-1 kafka-topics --zookeeper zookeeper-1:2181 --create --topic dangerous_driving --partitions 8 --replication-factor 2
 ```
 
 Now create a "console" listener on the topic, either using the `kafka-console-consumer`
@@ -330,7 +327,11 @@ kafka-console-consumer --bootstrap-server broker-1:9092 --topic dangerous_drivin
 or the `kafkacat` utility.
 
 ```
-kafkacat -b streamingplatform -t dangerous_driving
+kafkacat -b analyticsplatform -t dangerous_driving
+```
+
+```
+docker run -it --network analyticsplatform_default confluentinc/cp-ksql-cli http://ksql-server-1:8088
 ```
 
 ```
@@ -350,7 +351,7 @@ WHERE eventType != 'Normal';
 SELECT * FROM dangerous_driving_s;
 ```
 
-### (7) Aggregations using KSQL
+## (7) Aggregations using KSQL
 
 DROP TABLE dangerous_driving_count;
 
@@ -379,24 +380,23 @@ GROUP BY eventType;
 ## (8) Join with Static Driver Data
 
 ### Start the synchronization from the RDBMS table "truck"
-First start the console consumer on the `trucking_driver` topic:
+First start the console consumer on the `truck_driver` topic:
 
 ```
-docker exec -ti docker_broker-1_1 bash
-kafka-console-consumer --bootstrap-server broker-1:9092 --topic truck_driver --from-beginning
+docker exec -ti broker-1 kafka-console-consumer --bootstrap-server broker-1:9092 --topic truck_driver --from-beginning
 ```
 
 Print the key and value of the truck_driver topic
 
 ```
-kafkacat -b streamingplatform -t truck_driver -f "%k::%s\n" -u -q
+kafkacat -b analyticsplatform -t truck_driver -f "%k::%s\n" -u -q
 ```
 
 then start the JDBC connector:
 
 ```
-cd $SAMPLE_HOME/docker
-./start-connect-jdbc.sh
+cd $SAMPLE_HOME
+./scripts/start-connect-jdbc.sh
 ```
 
 To stop the connector execute the following command
@@ -424,10 +424,8 @@ UPDATE "driver" SET "available" = 'N', "last_update" = CURRENT_TIMESTAMP  WHERE 
 Stop the consumer and restart with `--from-beginning` option
 
 ```
-docker exec -ti docker_broker-1_1 bash
-kafka-console-consumer --bootstrap-server broker-1:9092 --topic trucking_driver --from-beginning
+docker exec -ti broker-1 kafka-console-consumer --bootstrap-server broker-1:9092 --topic truck_driver --from-beginning
 ```
-
 
 ### Create a KSQL table
 
@@ -439,6 +437,7 @@ set 'cache.max.bytes.buffering'='10000000';
 set 'auto.offset.reset'='earliest';
 
 DROP TABLE driver_t;
+
 CREATE TABLE driver_t  \
    (id BIGINT,  \
    first_name VARCHAR, \
@@ -462,9 +461,7 @@ SELECT * FROM driver_t;
 
 
 ```
-docker exec -ti docker_db_1 bash
-
-psql -d sample -U sample
+docker exec -ti postgresql psql -d sample -U sample
 ```
 
 ```
@@ -605,11 +602,11 @@ GROUP BY first_name, last_name, eventType;
 ## Using Kafka Streams to detect danagerous driving
 
 ```
-docker exec -ti docker_broker-1_1 bash
+docker exec -ti broker-1 bash
 ```
 
 ```
-kafka-topics --zookeeper zookeeper:2181 --create --topic dangerous_driving --partitions 8 --replication-factor 2
+kafka-topics --zookeeper zookeeper-1:2181 --create --topic dangerous_driving --partitions 8 --replication-factor 2
 kafka-console-consumer --bootstrap-server broker-1:9092 --topic dangerous_driving
 ```
 

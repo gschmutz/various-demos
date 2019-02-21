@@ -14,7 +14,7 @@ curl -X "POST" "$DOCKER_HOST_IP:8083/connectors" \
   "config": {
     "connector.class": "JdbcSourceConnector",
     "tasks.max": "1",
-    "connection.url":"jdbc:postgresql://db/sample?user=sample&password=sample",
+    "connection.url":"jdbc:postgresql://postgresql/sample?user=sample&password=sample",
     "mode": "timestamp",
     "timestamp.column.name":"last_update",
     "table.whitelist":"driver",
