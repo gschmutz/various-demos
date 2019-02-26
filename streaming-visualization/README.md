@@ -344,8 +344,10 @@ curl -X POST http://localhost:80/api/v0.1/api-key-here/push -d "tile=listing" -d
 
 ## Slack
 
-CREATE STREAM tweet_slack_notify_s
-AS SELECT text, user->screenname screenName from tweet_raw_s where user->screenname = 'gschmutz';
+```
+CREATE STREAM slack_notify_s
+AS SELECT text, user->screenname screenName from tweet_raw_s where user->screenname = 'gschmutz' or user->screenname = ;
+```
 
 ```
 CREATE STREAM slack_s WITH (KAFKA_TOPIC='slack')AS SELECT * FROM tweet_term_s WHERE term = 'iot' partition by id;

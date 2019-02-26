@@ -30,6 +30,7 @@ def prepare_for_listing(data):
     for k in data:
         data_prepared.append(k)
     data_prepared = {'items': data_prepared}
+    print (data_prepared)
     return data_prepared
 
 
@@ -64,7 +65,7 @@ def main():
 
        data = json.loads(msg.value().decode('utf-8'))
        data_selected = data.get('TOP_10')
-       print (data_selected)
+       # print (data_selected)
        data_prepared = prepare_for_listing(data_selected)
        data_jsoned = json.dumps(data_prepared)
        data_to_push = {
