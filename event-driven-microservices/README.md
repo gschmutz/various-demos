@@ -50,11 +50,11 @@ docker exec -ti docker_broker-1_1 bash
 list topics and create an new topic
 
 ```
-kafka-topics --zookeeper zookeeper:2181 --list
+kafka-topics --zookeeper zookeeper-1:2181 --list
 
-kafka-topics --zookeeper zookeeper:2181 --create --topic customer --partitions 8 --replication-factor 2 --config cleanup.policy=compact --config segment.ms=100 --config segment.bytes=1000 --config delete.retention.ms=100 --config min.cleanable.dirty.ratio=0.01
+kafka-topics --zookeeper zookeeper-1:2181 --create --topic customer --partitions 8 --replication-factor 2 --config cleanup.policy=compact --config segment.ms=100 --config segment.bytes=1000 --config delete.retention.ms=100 --config min.cleanable.dirty.ratio=0.01
 
-kafka-topics --zookeeper zookeeper:2181 --create --topic order --partitions 8 --replication-factor 2 --config cleanup.policy=compact --config segment.ms=100 -config segment.bytes=1000 --config delete.retention.ms=100 --config min.cleanable.dirty.ratio=0.01
+kafka-topics --zookeeper zookeeper-1:2181 --create --topic order --partitions 8 --replication-factor 2 --config cleanup.policy=compact --config segment.ms=100 -config segment.bytes=1000 --config delete.retention.ms=100 --config min.cleanable.dirty.ratio=0.01
 ```
 
 ## Register Schemas in Registry
