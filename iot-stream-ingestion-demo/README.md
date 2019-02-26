@@ -1,4 +1,4 @@
-# IoT Streaming Data Intgestion Demo
+# IoT Streaming Data Ingestion Demo
 
 ## Prepare Environment
 

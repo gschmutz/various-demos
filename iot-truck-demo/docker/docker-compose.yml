@@ -119,7 +119,7 @@ services:
     restart: always
 
   ksql-cli:
-    image: confluentinc/cp-ksql-cli:5.0.1
+    image: confluentinc/cp-ksql-cli:5.1.0
     container_name: ksql-cli
     depends_on:
       - broker-1
