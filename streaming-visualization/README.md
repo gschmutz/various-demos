@@ -1,3 +1,47 @@
+# Streaming Visualization Demo
+
+This demo shows various solutions for implementing streaming visualization applications using Kafka Connect / KSQL as the stream data integration and stream analytics stack. 
+
+## Running on AWS Lightstail
+
+```
+# Install Docker 
+curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+add-apt-repository "deb [arch=amd64] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable edge"
+apt-get install -y docker-ce
+sudo usermod -a -G docker $USER
+
+# Install Docker Compose
+curl -L "https://github.com/docker/compose/releases/download/1.23.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+chmod +x /usr/local/bin/docker-compose
+ln -s /usr/local/bin/docker-compose /usr/bin/docker-compose
+
+# Install wget
+apt-get install -y wget
+
+# Install kafkacat
+apt-get install -y kafkacat
+
+# Prepare Environment
+export PUBLIC_IP=$(curl ipinfo.io/ip)
+export DOCKER_HOST_IP=$(ip addr show eth0 | grep "inet\b" | awk '{print $2}' | cut -d/ -f1)
+mkdir analyticsplatform
+cd analyticsplatform
+wget https://raw.githubusercontent.com/gschmutz/various-demos/master/streaming-visualization/docker/docker-compose.yml
+
+# Setup Kafka Connect Twitter Connector
+mkdir kafka-connect
+cd kafka-connect
+wget https://github.com/jcustenborder/kafka-connect-twitter/releases/download/0.2.26/kafka-connect-twitter-0.2.26.tar.gz
+mkdir kafka-connect-twitter-0.2.26
+tar -zxvf kafka-connect-twitter-0.2.26.tar.gz -C kafka-connect-twitter-0.2.26
+rm kafka-connect-jms-1.2.1-2.1.0-all.tar.gz
+
+# Startup Environment
+docker-compose up
+```
+
+
 ## Prepare
 
 Create the topic `tweet-raw-v1` and `tweet-term-v1`
@@ -9,14 +53,15 @@ Create the connector
 
 ```
 connector.class=com.github.jcustenborder.kafka.connect.twitter.TwitterSourceConnector
-twitter.oauth.accessTokenSecret=ZzAOSAVDXoojMqcViZ7q9TmOFvqPzx1WjoN0Wvd5tPYZD
 process.deletes=false
 filter.keywords=#nosql,#bigdata
 kafka.status.topic=tweet-raw-v1
 tasks.max=1
-twitter.oauth.consumerSecret=3OUIaM4VmzDLyldB377lawzmupebgQqp7Bb5PrAPVLVUI28PRs
-twitter.oauth.accessToken=18898576-2Qzx1PlhCL2ZkCBVZvX0epzKOSoOaZ9ABaeL7ndd5
 twitter.oauth.consumerKey=wd6ohwZCiS4qI4woGqPnNhEd4
+twitter.oauth.consumerSecret=XXXXXX
+twitter.oauth.accessToken=18898576-2Qzx1PlhCL2ZkCBVZvX0epzKOSoOaZ9ABaeL7ndd5
+twitter.oauth.accessTokenSecret=XXXXXX
+
 
 # do not use transform currently
 #transforms.createKey.type=org.apache.kafka.connect.transforms.ValueToKey
@@ -225,21 +270,7 @@ INSERT INTO tweet_term_s \
 SELECT id, lang, replacestring(replacestring(replacestring(replacestring(TRIM(word[10]),'#',''),'@',''),'.',''),':','') as term, 'word' as type from tweet_words_s where word[10] IS NOT NULL;
 ```
 
-
-## Top 10 Terms per minute
-
-```
-select type, topk (term,10) top_10 from tweet_term_s window tumbling (size 60 minutes) where lang = 'en' and type = 'hashtag' group by type;
-```
-
-```
-select type, topk (term,10) top_10 from tweet_term_s window tumbling (size 60 minutes) where lang = 'en' and type = 'hashtag' group by type;
-```
-
-CREATE TABLE tweet_hashtag_top10_1min_t
-AS SELECT type, topk (term,10) top_10, topk (term,20) top_20 from tweet_term_s window tumbling (size 60 seconds) where lang = 'en' and type = 'hashtag' group by type;
-
-## Terms per minute
+## Terms per 1 minute
 
 ```
 DROP TABLE tweet_terms_per_min_t;
@@ -260,6 +291,22 @@ DROP TABLE tweet_terms_per_hour_t;
 CREATE TABLE tweet_terms_per_hour_t AS
 SELECT windowstart() windowStart, windowend() windowEnd, type, term, count(*) terms_per_hour FROM tweet_term_s window TUMBLING (SIZE 60 minutes) where lang = 'en' or lang = 'de' GROUP by type, term;
 ```
+
+## Top 10 Terms per hour (this does not work!)
+
+
+```
+DROP STREAM tweet_terms_per_hour_s;
+CREATE STREAM tweet_terms_per_hour_s WITH (KAFKA_TOPIC='TWEET_TERMS_PER_HOUR_T', VALUE_FORMAT='AVRO');
+```
+
+```
+DROP TABLE tweet_hashtag_top_1hour_t;
+
+CREATE TABLE tweet_hashtag_top_1hour_t
+AS SELECT type, windowstart, topkdistinct (CONCAT(LEFTPAD(CAST(terms_per_hour AS VARCHAR),5,'0'), term),10) top_10, topkdistinct (terms_per_hour,20) top_20 from tweet_terms_per_hour_s group by type, windowstart;
+```
+
 
 
 ## Tweets Total
@@ -323,11 +370,31 @@ AS SELECT user_screenname, COUNT(*) nof_tweets_by_user FROM tweet_tweets_with_us
 <https://tipboard.readthedocs.io>
 
 ```
-DROP TABLE dash_hashtag_top10_1min_t;
+DROP TABLE dash_hashtag_top10_5min_t;
 
-CREATE TABLE dash_hashtag_top10_1min_t WITH (VALUE_FORMAT = 'JSON')
-AS SELECT type, topkdistinct (term,10) top_10, topkdistinct (term,20) top_20 from tweet_term_s window tumbling (size 60 seconds) where lang = 'en' and type = 'hashtag' group by type;
+CREATE TABLE dash_hashtag_top10_5min_t WITH (VALUE_FORMAT = 'JSON')
+AS SELECT TIMESTAMPTOSTRING(windowstart(), 'yyyy-MM-dd HH:mm:ss.SSS'), type, term, count(*) nof from tweet_term_s window hopping (size 5 minutes, advance by 1 minute) where lang = 'en' and type = 'hashtag' group by type, term;
 ```
+
+```
+CREATE TABLE dash_tweet_count_t WITH (VALUE_FORMAT = 'JSON')
+AS SELECT groupid, COUNT(*) nof_tweets FROM tweet_count_s GROUP BY groupid;
+```
+
+```
+CREATE TABLE dash_tweet_count_by_hour_t
+AS SELECT groupid, COUNT(*) nof_tweets FROM tweet_count_s WINDOW TUMBLING (SIZE 1 HOUR) GROUP BY groupid;
+```
+
+
+
+```
+DROP STREAM dash_tweets_s;
+
+CREATE STREAM dash_tweets_s WITH (VALUE_FORMAT = 'JSON')
+AS SELECT id, user->screenName screenName, text FROM tweet_raw_s;
+```
+
 
 ```
 curl -X POST http://localhost:80/api/v0.1/api-key-here/push -d "tile=just_value" -d "key=nof_tweets" -d 'data={"title": "Number of Tweets:", "description": "(1 hour)", "just-value": "23"}'
@@ -346,7 +413,7 @@ curl -X POST http://localhost:80/api/v0.1/api-key-here/push -d "tile=listing" -d
 
 ```
 CREATE STREAM slack_notify_s
-AS SELECT text, user->screenname screenName from tweet_raw_s where user->screenname = 'gschmutz' or user->screenname = ;
+AS SELECT text, user->screenname screenName from tweet_raw_s where user->screenname = 'gschmutz' or user->screenname = 'rmoff';
 ```
 
 ```
