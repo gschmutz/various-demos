@@ -12,25 +12,12 @@ API_URL = 'http://localhost:80/api/v0.1/{}'.format(API_KEY)
 API_URL_PUSH = '/'.join((API_URL, 'push'))
 API_URL_TILECONFIG = '/'.join((API_URL, 'tileconfig'))
 
-def prepare_for_pie_chart(data):
-    # Pie chart needs data as a list of lists (whose elements are pairs
-    # component-percentage), so we have to prepare it.
-    # data={"title": "My title", "pie_data": [["Pie 1", 25], ["Pie 2", 25], ["Pie 3", 50]]}'
-    data_prepared = []
-    for k, v in data.items():
-        data_prepared.append([k, v[0]])
-    data_prepared = {'title': 'my title', 'pie_data': data_prepared}
-    return data_prepared
-
-def prepare_for_listing(data):
+def prepare_for_just_value(data):
     # Listing needs data as a list of lists (whose elements are pairs
     # component-percentage), so we have to prepare it.
-    # "data={"items": ["Leader: 5", "Product Owner: 0", "Scrum Master: 3", "Developer: 0"]}"
-    data_prepared = []
-    for k in data:
-        data_prepared.append(k)
-    data_prepared = {'items': data_prepared}
-    print (data_prepared)
+    # data={"title": "Number of Tweets:", "description": "(1 hour)", "just-value": "23"
+    data_prepared = data
+    data_prepared = {'title': '# Tweets:', 'description': 'per hour', 'just-value': data_prepared}
     return data_prepared
 
 
@@ -38,8 +25,8 @@ def main():
     # Tile 'pie001' (pie chart)
     # (let's say we want to show issues count for project 'Tipboard' grouped by
     # issue status i.e. 'Resolved', 'In Progress', 'Open', 'Closed' etc.)
-    TILE_NAME = 'listing'
-    TILE_KEY = 'top_hashtags'
+    TILE_NAME = 'just_value'
+    TILE_KEY = 'nof_tweets'
 
     c = Consumer({
        'bootstrap.servers': '192.168.73.86:9092',
@@ -49,7 +36,7 @@ def main():
        }
     })
 
-    c.subscribe(['DASH_HASHTAG_TOP10_1MIN_T'])
+    c.subscribe(['DASH_TWEET_COUNT_BY_HOUR_T'])
 
     while True:
        msg = c.poll(1.0)
@@ -64,9 +51,9 @@ def main():
              break
 
        data = json.loads(msg.value().decode('utf-8'))
-       data_selected = data.get('TOP_10')
+       data_selected = data.get('NOF_TWEETS')
        # print (data_selected)
-       data_prepared = prepare_for_listing(data_selected)
+       data_prepared = prepare_for_just_value(data_selected)
        data_jsoned = json.dumps(data_prepared)
        data_to_push = {
            'tile': TILE_NAME,

@@ -47,14 +47,18 @@ docker-compose up
 Create the topic `tweet-raw-v1` and `tweet-term-v1`
 
 
-Get the Kafka Connector from here: https://github.com/jcustenborder/kafka-connect-twitter
+Get the Kafka Connector from here: <https://github.com/jcustenborder/kafka-connect-twitter>
+
+```
+wget https://github.com/jcustenborder/kafka-connect-twitter/releases/download/0.2.26/kafka-connect-twitter-0.2.26.tar.gz
+```
 
 Create the connector 
 
 ```
 connector.class=com.github.jcustenborder.kafka.connect.twitter.TwitterSourceConnector
 process.deletes=false
-filter.keywords=#nosql,#bigdata
+filter.keywords=#vdz19 
 kafka.status.topic=tweet-raw-v1
 tasks.max=1
 twitter.oauth.consumerKey=wd6ohwZCiS4qI4woGqPnNhEd4
@@ -363,6 +367,9 @@ AS SELECT id, text, user->screenname as user_screenname, createdat from tweet_ra
 CREATE TABLE tweet_by_user_t
 AS SELECT user_screenname, COUNT(*) nof_tweets_by_user FROM tweet_tweets_with_user_s GROUP BY user_screenname having count(*) > 1;
 ```
+## Arcadia Data
+
+Navigate to <http://127.0.0.1:7999/arc/apps/login?next=/arc/apps/> and login as user `admin` with password `admin`.
 
 ## Tipboard Dashboard
 
@@ -382,7 +389,9 @@ AS SELECT groupid, COUNT(*) nof_tweets FROM tweet_count_s GROUP BY groupid;
 ```
 
 ```
-CREATE TABLE dash_tweet_count_by_hour_t
+DROP TABLE dash_tweet_count_by_hour_t;
+
+CREATE TABLE dash_tweet_count_by_hour_t WITH (VALUE_FORMAT = 'JSON')
 AS SELECT groupid, COUNT(*) nof_tweets FROM tweet_count_s WINDOW TUMBLING (SIZE 1 HOUR) GROUP BY groupid;
 ```
 
@@ -412,11 +421,25 @@ curl -X POST http://localhost:80/api/v0.1/api-key-here/push -d "tile=listing" -d
 ## Slack
 
 ```
-CREATE STREAM slack_notify_s
-AS SELECT text, user->screenname screenName from tweet_raw_s where user->screenname = 'gschmutz' or user->screenname = 'rmoff';
+DROP STREAM slack_notify_s;
+
+CREATE STREAM slack_notify_s WITH (KAFKA_TOPIC='slack-notify', VALUE_FORMAT='AVRO')
+AS SELECT id, text, user->screenname as user_screenname, createdat from tweet_raw_s
+where user->screenname = 'gschmutz' or user->screenname = 'rmoff';
+```
+
+## Sample Tweets
+
+```
+Streaming Visualization in Action: Now showing integration with #KafkaConnect and #Slack #bigdata2019 #BDTWS2019
 ```
 
 ```
-CREATE STREAM slack_s WITH (KAFKA_TOPIC='slack')AS SELECT * FROM tweet_term_s WHERE term = 'iot' partition by id;
+Streaming Visualization in Action: Now showing integration with #Kafka and #Tipboard #bigdata2019 #BDTWS2019
 ```
+
+```
+Streaming Visualization in Action: Now showing integration with #Kafka and #Tipboard #bigdata2019 #BDTWS2019
+```
+
 
