@@ -1,0 +1,15 @@
+spring:
+  kafka:
+    bootstrap-servers: 192.168.25.139:9092
+    kafka.acks: all
+    retries: 0
+    consumer:
+      auto-offset-reset: earliest
+      group-id: customer-group  
+#    producer.key-serializer: org.apache.kafka.common.serialization.StringSerializer
+    value.serializer: io.confluent.kafka.serializers.KafkaAvroSerializer
+    schema-registry-url: http://192.168.25.139:8081
+
+kafka:
+  topic:
+    customer: customer

@@ -1,0 +1,29 @@
+{
+  "type": "record",
+  "name": "AccountCreateCommand",
+  "namespace": "com.trivadis.avro.command.account.v1",
+  "doc": "the create account command schema",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "doc": "System generated Account ID"
+    },
+    {
+      "name": "customerId",
+      "type": "string"
+    },
+    {
+      "name": "accountType",
+      "type": {
+        "type": "enum",
+        "name": "AccountTypeEnum",
+        "doc": "Valid order statuses",
+        "symbols": [
+          "Savings",
+          "Checkings"
+        ]
+      }
+    }
+   ]
+}

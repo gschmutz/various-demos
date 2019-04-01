@@ -1,0 +1,18 @@
+{
+  "type": "record",
+  "name": "DepositMoneyCommand",
+  "namespace": "com.trivadis.avro.command.account.v1",
+  "doc": "the deposit money command schema",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "doc": "System generated Account ID"
+    },
+    {
+      "name": "amount",
+      "type": "double",
+      "doc": "the amount to deposit"
+    }
+   ]
+}

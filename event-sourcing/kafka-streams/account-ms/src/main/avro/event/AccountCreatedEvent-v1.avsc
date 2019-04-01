@@ -1,0 +1,33 @@
+{
+  "type": "record",
+  "name": "CreateAccountEvent",
+  "namespace": "com.trivadis.avro.event.account.v1",
+  "doc": "the AccountCeated event schema",
+  "fields": [
+    {
+      "name": "id",
+      "type": "string",
+      "doc": "System generated Account ID"
+    },
+    {
+      "name": "customerId",
+      "type": "string"
+    },
+    {
+      "name": "accountType",
+      "type": {
+        "type": "enum",
+        "name": "AccountTypeEnum",
+        "doc": "Valid order statuses",
+        "symbols": [
+          "Savings",
+          "Checkings"
+        ]
+      }
+    },
+    {
+      "name": "balance",
+      "type": "double"
+    }
+   ]
+}

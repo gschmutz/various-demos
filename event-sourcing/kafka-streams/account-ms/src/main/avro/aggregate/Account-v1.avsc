@@ -1,0 +1,60 @@
+{
+  "type": "record",
+  "name": "Account",
+  "namespace": "com.trivadis.avro.aggregate.account.v1",
+  "doc": "the account schema",
+  "fields": [
+    {
+      "name": "accountId",
+      "type": "string",
+      "doc": "System generated Account ID"
+    },
+    {
+      "name": "customerId",
+      "type": "string"
+    },
+    {
+      "name": "accountType",
+      "type": {
+        "type": "enum",
+        "name": "AccountTypeEnum",
+        "doc": "Valid order statuses",
+        "symbols": [
+          "Savings",
+          "Checkings"
+        ]
+      }
+    },
+    {
+      "name": "balance",
+      "type": "double"
+    },
+    {
+      "name": "transactions",
+      "type": [
+        "null",
+        {
+          "type": "array",
+          "items": {
+            "type": "record",
+            "name": "Transaction",
+            "fields": [
+              {
+                "name": "transactionId",
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              {
+                "name": "amount",
+                "type": "double"
+              }          
+            ]
+          }
+        }
+      ],
+      "doc": "collection of transactions made"
+    }
+  ]
+}

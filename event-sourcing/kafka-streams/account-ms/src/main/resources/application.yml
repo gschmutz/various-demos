@@ -1,0 +1,48 @@
+kafka:
+  bootstrap-servers: 192.168.73.86:9092
+  schema-registry-url: http://192.168.73.86:8089
+  topic:
+    account.command: account.command-v1
+    account.snapshot: account.snapshot-v1
+    account-created: account-created-v1
+    money-deposited: money-deposited-v1
+    money-withdrawn: money-withdrawn-v1
+  
+kafka-streams:  
+  applicationId: test
+  verbose: true
+  expired-check: true
+
+  topic:
+    source: person-before
+    sink: person-after
+
+spring:
+  application: 
+    name: test  
+  main:
+    allow-bean-definition-overriding: true    
+
+  jackson.serialization.indent_output: true
+  
+debug: false
+
+info:
+  app:
+    name: "@project.name@"
+    description: "@project.description@"
+    version: "@project.version@"
+    encoding: "@project.build.sourceEncoding@"
+    java.version: "@java.version@"
+
+management:
+  server:port: 8080
+  endpoint:
+    enabled-by-default: true
+    health:
+      show-details: always
+    metrics:enabled: true
+  endpoints:
+    web:
+      exposure:
+        include: "*"    
