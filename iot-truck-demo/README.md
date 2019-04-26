@@ -1,36 +1,71 @@
-# IoT Truck Demo - 1st gen
+# IoT Truck Demo
+
+This project shows how to setup and run the demo used in various talks, such as "Introduction into Stream Processing". 
 
 ## Prepare Environment
 
-The environment we are going to use is based on docker containers. In order to easily start the multiple containers, we are going to use Docker Compose. 
+The environment is completley based on docker containers. In order to easily start the multiple containers, we are going to use Docker Compose. You need to have at least 8 GB of RAM available, better is 12 GB or 16 GB. 
 
-### Create infrastructure using Docker Compose
+### Preparing environment
 
-For Kafka to work in this Docker Compose setup, two envrionment variables are necessary, which are configured with the IP address of the docker machine as well as the Public IP of the docker machine. 
+First let's export the `SAMPLE_HOME` variable pointing to the local folder of this GitHub project, to simplify navigating below. 
 
-You can add them to `/etc/environment` (without export) to make them persistent:
+```
+export SAMPLE_HOME=/mnt/hgfs/git/gschmutz/various-demos/iot-truck-demo
+```
+
+For Kafka to work with this Docker Compose setup, two envrionment variables are necessary, which are configured with the IP address of the docker machine as well as the Public IP of the docker machine. 
+
+You can either add them to `/etc/environment` (without export) to make them persistent:
 
 ```
 export DOCKER_HOST_IP=192.168.25.136
 export PUBLIC_IP=192.168.25.136
 ```
 
-Also export the local folder of this GitHub project as the SAMPLE_HOME variable. 
+Make sure to adapt the IP address according to your environment. 
+
+Optionally you can also create an `.env` file inside the `docker` folder with the following content:
 
 ```
-export SAMPLE_HOME=/mnt/hgfs/git/gschmutz/various-demos/iot-truck-demo
+DOCKER_HOST_IP=192.168.25.136
+PUBLIC_IP=192.168.25.136
 ```
 
-Add `streamingplatform` as an alias to the `/etc/hosts` file on the machine you are using to run the demo on.
+Last but not least add `streamingplatform` as an alias to the `/etc/hosts` file on the machine you are using to run the demo on.
 
 ```
-192.168.25.136	analyticsplatform
+192.168.25.136	streamingplatform
 ```
 
-Now we can start the environment. Navigate to the `docker` sub-folder inside the SAMPLE_HOME folder. 
+### Installing Kafkacat
+
+To simplify peeking into a Kafka topic, the kafkacat tool becomes handy. You can optinally install it using the follwing command:
+
+```
+sudo apt-get install kafkacat
+```
+
+To see that it has been installed successfully, run a `kafkacat -V`
+
+```
+>kafkacat -V
+
+kafkacat - Apache Kafka producer and consumer tool
+https://github.com/edenhill/kafkacat
+Copyright (c) 2014-2017, Magnus Edenhill
+Version 1.4.0 (JSON) (librdkafka 1.0.0 builtin.features=gzip,snappy,ssl,sasl,regex,lz4,sasl_gssapi,sasl_plain,sasl_scram,plugins,zstd)
+```
+
+### Starting the infrastructure using Docker Compose
+
+Create 
+
+Now we can start the environment. Navigate to the `docker` sub-folder inside the `SAMPLE_HOME` folder. 
 
 ```
 cd $SAMPLE_HOME/docker
+mkdir kafka-connect
 ```
 
 and start the vaious docker containers 
@@ -39,19 +74,34 @@ and start the vaious docker containers
 docker-compose up -d
 ```
 
-to show the logs of the containers
+To show all logs of all containers use
 
 ```
 docker-compose logs -f
 ```
 
+To show only the logs for some of the containers, for example `connect-1` and `connect-2`, use
+
+```
+docker-compose logs -f connect-1 connect-2
+```
+
+Some services in the `docker-compose.yml` are optional and can be removed, if you don't have enough resources to start them. 
+
+### Available Services 
+
 The following user interfaces are available:
 
- * Confluent Control Center: <http://analyticsplatform:9021>
- * Kafka Manager: <http://analyticsplatform:9000> 
- * Schema Registry UI: <http://analyticsplatform:8002>
- * Kafka Connect UI: <http://analyticsplatform:8003>
- * StreamSets Data Collector: <http://analyticsplatform:18630>
+ * Confluent Control Center: <http://streamingplatform:9021>
+ * Kafka Manager: <http://streamingplatform:9000> 
+ * KAdmin: <http://streamingplatform:28080>
+ * KafkaHQ: <http://streamingplatform:28082>
+ * Kafdrop: <http://streamingplatform:29020>
+ * Schema Registry UI: <http://streamingplatform:8002>
+ * Kafka Connect UI: <http://streamingplatform:8003>
+ * StreamSets Data Collector: <http://streamingplatform:18630>
+ * Tsujun KSQL UI: <http://streamingplatform:28083>
+ * MQTT UI: <http://streamingplatform:29080>
 
 ### Creating the necessary Kafka Topics
 
@@ -78,6 +128,8 @@ kafka-topics --zookeeper zookeeper-1:2181 --create --topic dangerous_driving_and
 
 kafka-topics --zookeeper zookeeper-1:2181 --create --topic truck_driver --partitions 8 --replication-factor 2 --config cleanup.policy=compact --config segment.ms=100 --config delete.retention.ms=100 --config min.cleanable.dirty.ratio=0.001
 ```
+
+If you don't like to work with the CLI, you can also create the Kafka topics using the [Kafka Manager GUI](http://streamingplatform:9000). 
 
 ### Prepare Database Table
 
@@ -129,47 +181,102 @@ INSERT INTO "driver" ("id", "first_name", "last_name", "available", "birthdate",
 INSERT INTO "driver" ("id", "first_name", "last_name", "available", "birthdate", "last_update") VALUES (31,'Rosemarie', 'Ruiz', 'Y', '22-SEP-80', CURRENT_TIMESTAMP);
 INSERT INTO "driver" ("id", "first_name", "last_name", "available", "birthdate", "last_update") VALUES (32,'Shaun', ' Marshall', 'Y', '22-JAN-85', CURRENT_TIMESTAMP);
 ```
-## (1) Truck Simulator
+## Runnging the Truck Simulator (1)
 
 For simulating truck data, we are going to use a Java program (adapted from Hortonworks) and maintained in this [GitHub project](https://github.com/TrivadisBDS/various-bigdata-prototypes/tree/master/streaming-sources/iot-truck-simulator/impl).
 
+The simulator can produce data either to a **Kafka** or **MQTT**. These two options are shown below. 
+
 ### Producing to Kafka
 
-Start the kafka console consumer on the Kafka topic `truck_position `:
+First let's start a consumer on the topic `truck_position` either using the `kafka-console-consumer `or `kafkacat` CLI. 
+
+* To start consuming using the kafka console consumer:
  
-```
-docker exec -ti broker-1 bash
-```
-
-```
-kafka-console-consumer --bootstrap-server broker-1:9092 --topic truck_position
+	```
+docker exec -ti broker-1 kafka-console-consumer --bootstrap-server broker-1:9092 --topic truck_position
 ```
 
-or by using kafkacat (using the quiet option):
+* To start consuming using kafkacat (using the quiet option):
 
-```
+	```
 kafkacat -b analyticsplatform:9092 -t truck_position -q
 ```
 
-Produce the IoT Truck events to topic `truck_position `.
+Now let's produce the truck events to the Kafka topic `truck_position `.
 
 ```
-docker run trivadisbds/iot-truck-simulator '-s' 'KAFKA' '-h' $DOCKER_HOST_IP '-p' '9092' '-f' 'CSV' "-t" "sec"
+docker run trivadis/iot-truck-simulator '-s' 'KAFKA' '-h' $DOCKER_HOST_IP '-p' '9092' '-f' 'CSV' "-t" "sec"
 ```
 
 ### Producing to MQTT
 
-To produce to topic on MQTT broker on port 1883 (mosquitto)
+First let's start a consumer on the MQTT topics `trucks/+/position`. 
+
+ * To start consuming using through a command line, perform the following docker command:
+
+	```
+docker run -it --rm efrecon/mqtt-client sub -h $DOCKER_HOST_IP -t "truck/+/position" -v
+```
+  
+ * to start consuming using the MQTT UI (HiveMQ Web Client), navigate to <http://streamingplatform:29080> and connect using `streamingplatform` for the **Host** field, `9001` for the **Port** field and then click on **Connect**: 
+
+	![Alt Image Text](./images/mqtt-ui-connect.png "MQTT UI Connect")
+	
+	When successfully connected, click on Add New Topic Subscription and enter `truck/+/position` into **Topic** field and click **Subscribe**:
+	
+	![Alt Image Text](./images/mqtt-ui-subscription.png "MQTT UI Connect")
+	
+
+Now let's produce the truck events to the MQTT broker running on port 1883:
 
 ```
-docker run trivadisbds/iot-truck-simulator '-s' 'MQTT' '-h' $DOCKER_HOST_IP '-p' '1883' '-f' 'CSV'
+docker run trivadis/iot-truck-simulator '-s' 'MQTT' '-h' $DOCKER_HOST_IP '-p' '1883' '-f' 'CSV'
 ```
 
-in MQTT.fx suscribe to `truck/+/drving_info`
+As soon as messages are produced to MQTT, you should see them either on the CLI or in the MQTT UI (Hive MQ) as shown below.
 
-## (2) MQTT to Kafa using Kafka Connect
+![Alt Image Text](./images/mqtt-ui-messages.png "MQTT UI Connect")
 
-First let's listen on the topci: 
+Alternatively you can also use the [MQTT.fx](https://mqttfx.jensd.de/) or the [MQTT Explorer](https://mqtt-explorer.com/) applications to browse for the messages on the MQTT broker. They are both available for installation on Mac or Windows. 
+
+## Using Kafka Connect to bridge between MQTT and Kafka (2)
+
+In order to get the messages from MQTT into Kafka, we will be using Kafka Connect. Luckily, there are multiple Kafka Connectors available for MQTT. We will be using the one available from the [Landoop Stream-Reactor Project](https://github.com/Landoop/stream-reactor/tree/master/kafka-connect-mqtt) called `kafka-connect-mqtt`.
+
+As part of the restart of the `connect` service, the `kafka-connect` folder mapped into the container should have been created on the Docker host. Make sure that it belongs to the `cas` user by executing the following command:
+
+```
+sudo chown bigdata:bigdata -R kafka-connect
+```
+
+Then navigate into the `kafka-connect` folder, create a folder `mqtt` and navigate into this folder.
+
+```
+mkdir mqtt
+cd mqtt
+```
+
+In here, download the `kafka-connect-mqtt-1.1.1-2.1.0-all.tar.gz` file from the [Landoop Stream-Reactor Project](https://github.com/Landoop/stream-reactor/tree/master/kafka-connect-mqtt).
+
+```
+wget https://github.com/Landoop/stream-reactor/releases/download/1.2.1/kafka-connect-mqtt-1.2.1-2.1.0-all.tar.gz
+```
+
+Once it is successfully downloaded, untar it using this `tar` command. 
+
+```
+tar xvf kafka-connect-mqtt-1.0.0-1.0.0-all.tar.gz
+```
+
+Now let's restart Kafka connect in order to pick up the new connector. 
+
+```
+docker-compose restart connect-1 connect-2
+```
+
+
+First let's listen on the topic 
 
 ```
 kafkacat -b streamingplatform:9092 -t truck_position -q
@@ -190,18 +297,18 @@ You can remove the connector using the following command
 curl -X "DELETE" "$DOCKER_HOST_IP:8083/connectors/mqtt-source"
 ```
 
-## (3) MQTT to Kafa using Confluent MQTT Proxy
+## MQTT to Kafa using Confluent MQTT Proxy (3)
 
 Make sure that the MQTT proxy has been started as a service in the `docker-compose.yml`.
 
 ```
   mqtt-proxy:
-    image: confluentinc/cp-kafka-mqtt:5.0.0
+    image: confluentinc/cp-kafka-mqtt:5.2.1
     hostname: mqtt-proxy
     ports:
       - "1884:1884"
     environment:
-      KAFKA_MQTT_TOPIC_REGEX_LIST: 'truck_driving_info:.*driving_info'
+      KAFKA_MQTT_TOPIC_REGEX_LIST: 'truck_position:.*position,truck_engine:.*engine'
       KAFKA_MQTT_LISTENERS: 0.0.0.0:1884
       KAFKA_MQTT_BOOTSTRAP_SERVERS: PLAINTEXT://broker-1:9092,broker-2:9093
       KAFKA_MQTT_CONFLUENT_TOPIC_REPLICATIN_FACTOR: 1
@@ -213,8 +320,7 @@ Change the truck simulator to produce on port 1884, which is the one the MQTT pr
 mvn exec:java -Dexec.args="-s MQTT -f CSV -p 1884 -m SPLIT -t millisec"
 ```
 
-
-## (5) Using KSQL for Stream Analytics
+## Using KSQL for Stream Analytics (4)
 
 ### Connect to KSQL CLI
 
@@ -308,7 +414,7 @@ SELECT * FROM truck_position_s WHERE eventType != 'Normal';
 1539712120102 | truck/31/position | null | 31 | 12 | 927636994 | Unsafe following distance | 38.22 | -91.18 | -6187001306629414077
 ```
 
-## (6) Create a new Stream based on the KSQL SELECT
+## Create a new Stream based on the KSQL SELECT (5)
 
 Let's provide the data as a topic:
 
@@ -351,7 +457,7 @@ WHERE eventType != 'Normal';
 SELECT * FROM dangerous_driving_s;
 ```
 
-## (7) Aggregations using KSQL
+## Aggregations using KSQL (6)
 
 DROP TABLE dangerous_driving_count;
 
@@ -377,7 +483,7 @@ WINDOW HOPPING (SIZE 30 SECONDS, ADVANCE BY 10 SECONDS) \
 GROUP BY eventType;
 ```
 
-## (8) Join with Static Driver Data
+## Join with Static Driver Data (7)
 
 ### Start the synchronization from the RDBMS table "truck"
 First start the console consumer on the `truck_driver` topic:
@@ -528,7 +634,7 @@ UPDATE "driver" SET "first_name" = 'Slow Down Mickey', "last_update" = CURRENT_T
 UPDATE "driver" SET "first_name" = 'Slow Down Patricia', "last_update" = CURRENT_TIMESTAMP  WHERE "id" = 22;
 ```
 
-## (9) GeoHash and Aggregation
+## GeoHash and Aggregation (8)
 
 ```
 SELECT latitude, longitude, geohash(latitude, longitude, 4) \
