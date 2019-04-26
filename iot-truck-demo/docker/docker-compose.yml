@@ -208,7 +208,7 @@ services:
       - "1883:1883"
       - "9001:9001"
     volumes:
-      - ./mosquitto-1.conf:/mosquitto/config/mosquitto.conf
+      - ./mosquitto/mosquitto-1.conf:/mosquitto/config/mosquitto.conf
     restart: always
    
   adminer:
@@ -324,4 +324,23 @@ services:
       SCHEMAREGISTRY_URL: 'http://${PUBLIC_IP}:8081'
     restart: always
     
-      
+  ksqlui:
+    image: matsumana/tsujun:0.0.1
+    hostname: ksqlui
+    container_name: ksqlui
+    ports: 
+      - "28083:8080"
+    environment:
+      - KSQL_SERVER=http://ksql-server-1:8088
+    restart: always
+    
+  mqtt-ui:
+    image: vergissberlin/hivemq-mqtt-web-client
+    hostname: mqtt-ui
+    container_name: mqtt-ui
+    restart: always
+    ports:
+      - "29080:80"
+
+
+            
