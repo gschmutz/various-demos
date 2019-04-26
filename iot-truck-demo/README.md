@@ -223,9 +223,9 @@ docker run -it --rm efrecon/mqtt-client sub -h $DOCKER_HOST_IP -t "truck/+/posit
 
 	![Alt Image Text](./images/mqtt-ui-connect.png "MQTT UI Connect")
 	
-When successfully connected, click on Add New Topic Subscription and enter `truck/+/position` into **Topic** field and click **Subscribe**:
+	When successfully connected, click on Add New Topic Subscription and enter `truck/+/position` into **Topic** field and click **Subscribe**:
 	
-![Alt Image Text](./images/mqtt-ui-subscription.png "MQTT UI Connect")
+	![Alt Image Text](./images/mqtt-ui-subscription.png "MQTT UI Connect")
 	
 Now let's produce the truck events to the MQTT broker running on port 1883:
 
