@@ -194,13 +194,13 @@ First let's start a consumer on the topic `truck_position` either using the `kaf
 * To start consuming using the kafka console consumer:
  
 	```
-docker exec -ti broker-1 kafka-console-consumer --bootstrap-server broker-1:9092 --topic truck_position
+	docker exec -ti broker-1 kafka-console-consumer --bootstrap-server broker-1:9092 --topic truck_position
 ```
 
 * To start consuming using kafkacat (using the quiet option):
 
 	```
-kafkacat -b analyticsplatform:9092 -t truck_position -q
+	kafkacat -b analyticsplatform:9092 -t truck_position -q
 ```
 
 Now let's produce the truck events to the Kafka topic `truck_position `.
@@ -216,7 +216,7 @@ First let's start a consumer on the MQTT topics `trucks/+/position`.
  * To start consuming using through a command line, perform the following docker command:
 
 	```
-docker run -it --rm efrecon/mqtt-client sub -h $DOCKER_HOST_IP -t "truck/+/position" -v
+	docker run -it --rm efrecon/mqtt-client sub -h $DOCKER_HOST_IP -t "truck/+/position" -v
 ```
   
  * to start consuming using the MQTT UI (HiveMQ Web Client), navigate to <http://streamingplatform:29080> and connect using `streamingplatform` for the **Host** field, `9001` for the **Port** field and then click on **Connect**: 
