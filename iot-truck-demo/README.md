@@ -57,9 +57,18 @@ Copyright (c) 2014-2017, Magnus Edenhill
 Version 1.4.0 (JSON) (librdkafka 1.0.0 builtin.features=gzip,snappy,ssl,sasl,regex,lz4,sasl_gssapi,sasl_plain,sasl_scram,plugins,zstd)
 ```
 
-### Starting the infrastructure using Docker Compose
+### Preparing the infrastructure with Docker Compose
 
-Create 
+First create a folder to keep the `docker-compose.yml` file and the necessary artifacts. We are using `streamingfolder` for the folder name here. 
+
+```
+mkdir streamingplatform
+cd streamingplatform
+```
+
+Now let's download the `docker-compose.yml` file from the GitHub repository
+
+### Starting the infrastructure using Docker Compose
 
 Now we can start the environment. Navigate to the `docker` sub-folder inside the `SAMPLE_HOME` folder. 
 
