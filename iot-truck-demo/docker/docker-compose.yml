@@ -316,9 +316,6 @@ services:
     container_name: streamsets
     ports:
       - "18630:18630"
-    volumes:
-      - ./streamsets/user-libs:/opt/streamsets-datacollector-user-libs
-      - ./streamsets/data:/data  
     restart: always
 
   kafka-connect-ui:
