@@ -1,4 +1,4 @@
-# Demo NLOUG Tech
+# IoT Truck Demo
 
 version: "2.1"
 
@@ -6,6 +6,7 @@ services:
   zookeeper-1:
     image: confluentinc/cp-zookeeper:5.2.1
     hostname: zookeeper-1
+    container_name: zookeeper-1
     ports:
       - "2181:2181"
     environment:
@@ -16,6 +17,7 @@ services:
   broker-1:
     image: confluentinc/cp-enterprise-kafka:5.2.1
     hostname: broker-1
+    container_name: broker-1
     depends_on:
       - zookeeper-1
     ports:
@@ -42,6 +44,7 @@ services:
   broker-2:
     image: confluentinc/cp-enterprise-kafka:5.2.1
     hostname: broker-2
+    container_name: broker-2
     depends_on:
       - zookeeper-1
     ports:
@@ -68,6 +71,7 @@ services:
   broker-3:
     image: confluentinc/cp-enterprise-kafka:5.2.1
     hostname: broker-3
+    container_name: broker-3
     depends_on:
       - zookeeper-1
     ports:
@@ -201,24 +205,36 @@ services:
       SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_METHODS: 'GET,POST,PUT,OPTIONS'
     restart: always
   
-  mosquitto-1:
+  mqtt-1:
     image: eclipse-mosquitto:latest
-    hostname: mosquitto-1
+    hostname: mqtt-1
+    container_name: mqtt-1
     ports: 
       - "1883:1883"
       - "9001:9001"
     volumes:
       - ./mosquitto/mosquitto-1.conf:/mosquitto/config/mosquitto.conf
     restart: always
-   
+
+  mqtt-2:
+    image: hivemq/hivemq3
+    hostname: mqtt-2
+    container_name: mqtt-2
+    ports: 
+      - "1882:1883"
+      - "48080:8080"
+    restart: always
+
   adminer:
     image: adminer
+    container_name: adminer
     ports:
       - 38080:8080
     restart: always
    
-  db:
+  postgresql:
     image: mujz/pagila
+    container_name: postgresql
     environment:
       - POSTGRES_PASSWORD=sample
       - POSTGRES_USER=sample
@@ -229,6 +245,7 @@ services:
   mqtt-proxy:
     image: confluentinc/cp-kafka-mqtt:5.2.1
     hostname: mqtt-proxy
+    container_name: mqtt-proxy
     ports:
       - "1884:1884"
     environment:
@@ -236,10 +253,12 @@ services:
       KAFKA_MQTT_LISTENERS: 0.0.0.0:1884
       KAFKA_MQTT_BOOTSTRAP_SERVERS: PLAINTEXT://broker-1:9092,broker-2:9093
       KAFKA_MQTT_CONFLUENT_TOPIC_REPLICATIN_FACTOR: 1
+    restart: always
 
   control-center:
     image: confluentinc/cp-enterprise-control-center:5.2.1
     hostname: control-center
+    container_name: control-center
     depends_on:
       - zookeeper-1
       - broker-1
@@ -264,6 +283,7 @@ services:
   kafka-manager:
     image: trivadis/kafka-manager
     hostname: kafka-manager
+    container_name: kafka-manager
     depends_on:
       - zookeeper-1
     ports:
@@ -291,8 +311,9 @@ services:
     restart: always   
     
   streamsets:
-    image: trivadis/streamsets-kafka-nosql:3.5.0
+    image: trivadis/streamsets-kafka-nosql:3.8.1
     hostname: streamsets
+    container_name: streamsets
     ports:
       - "18630:18630"
     volumes:
@@ -303,6 +324,7 @@ services:
   kafka-connect-ui:
     image: landoop/kafka-connect-ui:latest
     hostname: kafka-connect-ui
+    container_name: kafka-connect-ui
     ports:
       - "8003:8000"
     environment:
@@ -310,18 +332,6 @@ services:
       PROXY: "true"
     depends_on:
       - connect-1
-    restart: always
-
-  schema-registry-ui:
-    image: landoop/schema-registry-ui:lastest
-    hostname: schema-registry-ui
-    depends_on:
-      - broker-1
-      - schema-registry
-    ports:
-      - "8002:8000"
-    environment:
-      SCHEMAREGISTRY_URL: 'http://${PUBLIC_IP}:8081'
     restart: always
     
   ksqlui:
@@ -333,7 +343,20 @@ services:
     environment:
       - KSQL_SERVER=http://ksql-server-1:8088
     restart: always
-    
+
+  schema-registry-ui:
+    image: landoop/schema-registry-ui:latest
+    hostname: schema-registry-ui
+    container_name: schema-registry-ui
+    depends_on:
+      - broker-1
+      - schema-registry
+    ports:
+      - "8002:8000"
+    environment:
+      SCHEMAREGISTRY_URL: 'http://${PUBLIC_IP}:8081'
+    restart: always
+ 
   mqtt-ui:
     image: vergissberlin/hivemq-mqtt-web-client
     hostname: mqtt-ui
@@ -342,5 +365,3 @@ services:
     ports:
       - "29080:80"
 
-
-            
