@@ -216,15 +216,6 @@ services:
       - ./mosquitto/mosquitto-1.conf:/mosquitto/config/mosquitto.conf
     restart: always
 
-  mqtt-2:
-    image: hivemq/hivemq3
-    hostname: mqtt-2
-    container_name: mqtt-2
-    ports: 
-      - "1882:1883"
-      - "48080:8080"
-    restart: always
-
   adminer:
     image: adminer
     container_name: adminer
