@@ -19,4 +19,12 @@ public class DepositMoneyCommand extends BaseCommand<String> {
 	public BigDecimal getAmount() {
 		return amount;
 	}
+	
+	@Override
+	public String toString() {
+		return "DepositMoneyCommand [amount=" + amount + ", getId()=" + getId() + ", getClass()=" + getClass()
+				+ ", hashCode()=" + hashCode() + ", toString()=" + super.toString() + "]";
+	}
+	
+	
 }

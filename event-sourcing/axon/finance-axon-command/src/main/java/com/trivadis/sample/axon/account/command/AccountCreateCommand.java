@@ -31,5 +31,12 @@ public class AccountCreateCommand extends BaseCommand<String>{
 	public String getAccountType() {
 		return accountType;
 	}
+
+	@Override
+	public String toString() {
+		return "AccountCreateCommand [forCustomerId=" + forCustomerId + ", accountType=" + accountType + ", getId()="
+				+ getId() + ", getClass()=" + getClass() + ", hashCode()=" + hashCode() + ", toString()="
+				+ super.toString() + "]";
+	}
 	
 }

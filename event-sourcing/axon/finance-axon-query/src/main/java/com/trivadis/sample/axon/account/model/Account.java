@@ -2,6 +2,8 @@ package com.trivadis.sample.axon.account.model;
 
 import java.io.Serializable;
 import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
 
 import org.springframework.data.annotation.Id;
 
@@ -20,12 +22,11 @@ public class Account implements Serializable{
 	private String accountNo;
 	
 	private BigDecimal balance;
-	
 	private String forCustomerId;
-	
 	private String accountType;
-
 	private String lastUpdated;
+	
+	private List<Transaction> transactions;
 	
 	public Account(String accountNo, BigDecimal balance, String forCustomerId, String accountType,String lastUpdated) {
 		super();
@@ -34,6 +35,7 @@ public class Account implements Serializable{
 		this.forCustomerId = forCustomerId;
 		this.lastUpdated = lastUpdated;
 		this.accountType = accountType;
+		this.transactions = new ArrayList<Transaction>();
 	}
 
 	public String getAccountNo() {
@@ -76,6 +78,9 @@ public class Account implements Serializable{
 		this.lastUpdated = lastUpdated;
 	}
 
-
+	public void appendTransaction(Transaction transaction) {
+		transactions.add(transaction);
+	}
 
 }
+

@@ -14,4 +14,12 @@ public class WithdrawMoneyCommand extends BaseCommand<String> {
 	public BigDecimal getAmount() {
 		return amount;
 	}
+	
+	@Override
+	public String toString() {
+		return "WithdrawMoneyCommand [amount=" + amount + ", getId()=" + getId() + ", getClass()=" + getClass()
+				+ ", hashCode()=" + hashCode() + ", toString()=" + super.toString() + "]";
+	}
+	
+	
 }

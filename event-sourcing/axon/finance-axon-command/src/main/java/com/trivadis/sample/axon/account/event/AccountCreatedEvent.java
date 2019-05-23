@@ -43,5 +43,12 @@ public class AccountCreatedEvent extends BaseEvent<String> {
 	public void setBalance(BigDecimal balance) {
 		this.balance = balance;
 	}
+
+	@Override
+	public String toString() {
+		return "AccountCreatedEvent [forCustomerId=" + forCustomerId + ", accountType=" + accountType + ", balance="
+				+ balance + ", get__eventType()=" + get__eventType() + ", getId()=" + getId() + ", getClass()="
+				+ getClass() + ", hashCode()=" + hashCode() + ", toString()=" + super.toString() + "]";
+	}
 	
 }

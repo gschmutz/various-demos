@@ -1,5 +1,6 @@
 package com.trivadis.sample.axon.account.controller;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import com.trivadis.sample.axon.account.event.AccountCreatedEvent;
 import com.trivadis.sample.axon.account.event.MoneyDepositedEvent;
 import com.trivadis.sample.axon.account.event.MoneyWithdrawnEvent;
 import com.trivadis.sample.axon.account.model.Account;
+import com.trivadis.sample.axon.account.model.Transaction;
 
 import springbootaxon.account.repo.AccountRepository;
 
@@ -42,19 +44,21 @@ public class AccountQueryController {
 		account.setBalance(account.getBalance().add(event.getAmount()));
 		account.setLastUpdated(instant.toString());
 		
+		account.appendTransaction(new Transaction(event.getAmount().doubleValue(), event.getWhen()));
+
 		accRepo.save(account);
-		
 	}
 	
 
 	@EventHandler
-	public void on(MoneyWithdrawnEvent event,@Timestamp Instant instant) {
+	public void on(MoneyWithdrawnEvent event, @Timestamp Instant instant) {
 		Account account = accRepo.findByAccountNo(event.getId());
 		account.setBalance(account.getBalance().subtract(event.getAmount()));
 		account.setLastUpdated(instant.toString());
 		
-		accRepo.save(account);
+		account.appendTransaction(new Transaction(event.getAmount().multiply(new BigDecimal(-1)).doubleValue(), event.getWhen()));
 		
+		accRepo.save(account);
 	}
 	
 	@GetMapping("/details")

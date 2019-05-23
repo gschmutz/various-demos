@@ -73,18 +73,18 @@ public class AccountUI extends UI{
     }
 	
 	private Panel createPanel() {
-        TextField id = new TextField("Reseller Id");
-        TextField name = new TextField("Reseller Name");
+        TextField customerId = new TextField("Customer ID");
+        TextField accountType = new TextField("AccountType");
         Button submit = new Button("Submit");
 
         submit.addClickListener(evt -> {
-            commandGateway.sendAndWait(new AccountCreateCommand(UUID.randomUUID().toString(),id.getValue(), name.getValue()));
+            commandGateway.sendAndWait(new AccountCreateCommand(UUID.randomUUID().toString(),customerId.getValue(), accountType.getValue()));
             Notification.show("Success", Notification.Type.HUMANIZED_MESSAGE)
                     .addCloseListener(e -> accSummaryDataProvider.refreshAll());
         });
 
         FormLayout form = new FormLayout();
-        form.addComponents(id, name, submit);
+        form.addComponents(customerId, accountType, submit);
         form.setMargin(true);
 
         Panel panel = new Panel("Create Account");
