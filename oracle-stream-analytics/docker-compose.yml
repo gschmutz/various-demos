@@ -129,7 +129,7 @@ services:
     restart: always
 
   oracle-stream-analytics:
-    image: trivadis/oracle-stream-analytics:latest
+    image: trivadis/oracle-stream-analytics:18.1
     container_name: oracle-stream-analytics
     hostname: oracle-stream-analytics
     ports:
