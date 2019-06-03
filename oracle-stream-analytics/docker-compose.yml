@@ -149,7 +149,8 @@ services:
       - 7077:7077
       - 8080:8080
     environment:
-      MASTER: spark://master:7077
+      SPARK_MASTER: "spark://spark-master:7077"
+      MASTER: spark://spark-master:7077
       SPARK_CONF_DIR: /conf
       SPARK_PUBLIC_DNS: localhost
     volumes:
