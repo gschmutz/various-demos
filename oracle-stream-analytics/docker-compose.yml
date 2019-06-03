@@ -1,10 +1,11 @@
 # 
-version: "2.1"
+version: "3"
 
 services:
-  zookeeper:
-    image: confluentinc/cp-zookeeper:5.1.0
-    hostname: zookeeper
+  zookeeper-1:
+    image: confluentinc/cp-zookeeper:5.2.1
+    container_name: zookeeper-1
+    hostname: zookeeper-1
     ports:
       - "2181:2181"
     environment:
@@ -13,91 +14,102 @@ services:
     restart: always
 
   broker-1:
-    image: confluentinc/cp-enterprise-kafka:5.1.0
+    image: confluentinc/cp-kafka:5.2.1
+    container_name: broker-1
     hostname: broker-1
     depends_on:
-      - zookeeper
+      - zookeeper-1
     ports:
       - "9092:9092"
     environment:
       KAFKA_BROKER_ID: 1
       KAFKA_BROKER_RACK: rack-a
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
-      KAFKA_ADVERTISED_HOST_NAME: ${DOCKER_HOST_IP}
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper-1:2181'
       KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://${DOCKER_HOST_IP}:9092'
-      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+#      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
       KAFKA_DELETE_TOPIC_ENABLE: "true"
-      KAFKA_JMX_PORT: 9999
-      KAFKA_JMX_OPTS: '-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.rmi.port=9999'
+      KAFKA_JMX_PORT: 9994
+      KAFKA_JMX_OPTS: '-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.rmi.port=9994'
       KAFKA_JMX_HOSTNAME: 'broker-1'
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker-1:9092
-      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper:2181
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
-      CONFLUENT_METRICS_ENABLE: 'true'
-      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_DELETE_TOPIC_ENABLE: 'true'
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'      
     restart: always
 
   broker-2:
-    image: confluentinc/cp-enterprise-kafka:5.1.0
+    image: confluentinc/cp-kafka:5.2.1
+    container_name: broker-2
     hostname: broker-2
     depends_on:
-      - zookeeper
+      - zookeeper-1
     ports:
       - "9093:9093"
     environment:
       KAFKA_BROKER_ID: 2
       KAFKA_BROKER_RACK: rack-a
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper-1:2181'
       KAFKA_ADVERTISED_HOST_NAME: ${DOCKER_HOST_IP}
       KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://${DOCKER_HOST_IP}:9093'
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
       KAFKA_DELETE_TOPIC_ENABLE: "true"
-      KAFKA_JMX_PORT: 9998
-      KAFKA_JMX_OPTS: '-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.rmi.port=9998'
+      KAFKA_JMX_PORT: 9993
+      KAFKA_JMX_OPTS: '-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.rmi.port=9993'
       KAFKA_JMX_HOSTNAME: 'broker-2'
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker-2:9093
-      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper:2181
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
-      CONFLUENT_METRICS_ENABLE: 'true'
-      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_DELETE_TOPIC_ENABLE: 'true'
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
     restart: always
 
   broker-3:
-    image: confluentinc/cp-enterprise-kafka:5.1.0
+    image: confluentinc/cp-kafka:5.2.1
+    container_name: broker-3
     hostname: broker-3
     depends_on:
-      - zookeeper
+      - zookeeper-1
     ports:
       - "9094:9094"
     environment:
       KAFKA_BROKER_ID: 3
       KAFKA_BROKER_RACK: rack-a
-      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper:2181'
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper-1:2181'
       KAFKA_ADVERTISED_HOST_NAME: ${DOCKER_HOST_IP}
       KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://${DOCKER_HOST_IP}:9094'
       KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
       KAFKA_DELETE_TOPIC_ENABLE: "true"
-      KAFKA_JMX_PORT: 9997
-      KAFKA_JMX_OPTS: '-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.rmi.port=9997'
+      KAFKA_JMX_PORT: 9992
+      KAFKA_JMX_OPTS: '-Dcom.sun.management.jmxremote -Dcom.sun.management.jmxremote.authenticate=false -Dcom.sun.management.jmxremote.ssl=false -Dcom.sun.management.jmxremote.local.only=false -Dcom.sun.management.jmxremote.rmi.port=9992'
       KAFKA_JMX_HOSTNAME: 'broker-3'
-      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
-      CONFLUENT_METRICS_REPORTER_BOOTSTRAP_SERVERS: broker-3:9094
-      CONFLUENT_METRICS_REPORTER_ZOOKEEPER_CONNECT: zookeeper:2181
-      CONFLUENT_METRICS_REPORTER_TOPIC_REPLICAS: 1
-      CONFLUENT_METRICS_ENABLE: 'true'
-      CONFLUENT_SUPPORT_CUSTOMER_ID: 'anonymous'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_DELETE_TOPIC_ENABLE: 'true'
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+    restart: always
+
+  kafka-manager:
+    image: trivadis/kafka-manager
+    container_name: kafka-manager
+    depends_on:
+      - zookeeper-1
+      - broker-1
+    ports:
+      - "29000:9000"
+    environment:
+      ZK_HOSTS: 'zookeeper-1:2181'
+      APPLICATION_SECRET: 'letmein'
     restart: always
 
   adminer:
     image: adminer
+    container_name: adminer
     ports:
       - 38080:8080
     restart: always
      
   db:
     image: mysql:5.6
+    container_name: db
     hostname: db
     environment:
       MYSQL_ROOT_PASSWORD: "root"
@@ -109,138 +121,127 @@ services:
     restart: always
 
   streamsets:
-    image: trivadisbds/streamsets-kafka-nosql
+    image: trivadis/streamsets-kafka-nosql
+    container_name: streamsets
     hostname: streamsets
     ports:
       - "18630:18630"
     restart: always
 
-  osa:
-    image: gschmutz/osa:latest
-    hostname: osa
+  oracle-stream-analytics:
+    image: trivadis/oracle-stream-analytics:latest
+    container_name: oracle-stream-analytics
+    hostname: oracle-stream-analytics
     ports:
       - 9080:9080
     depends_on:
       - db
     restart: always
 
-  master:
-    image: gschmutz/spark:2.2.1-hadoop-2.7
-    command: bin/spark-class org.apache.spark.deploy.master.Master -h master
-    hostname: master
+  spark-master:
+    image: bde2020/spark-master:2.2.1-hadoop2.7
+    container_name: spark-master
+#    command: bin/spark-class org.apache.spark.deploy.master.Master -h master
+    hostname: spark-master
+    ports:
+      - 6066:6066
+      - 7077:7077
+      - 8080:8080
     environment:
       MASTER: spark://master:7077
       SPARK_CONF_DIR: /conf
       SPARK_PUBLIC_DNS: localhost
-    expose:
-      - 7001
-      - 7002
-      - 7003
-      - 7004
-      - 7005
-      - 7077
-      - 6066
-    ports:
-      - 4040:4040
-      - 6066:6066
-      - 7077:7077
-      - 8080:8080
     volumes:
-      - ./conf/master:/conf
+      - ./conf/spark-defaults.conf:/spark/conf/spark-defaults.conf
+      - ./lib:/usr/spark-2.2.1/jars
       - ./data:/tmp/data
     restart: always
 
-  worker-1:
-    image: gschmutz/spark:2.2.1-hadoop-2.7
-    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://master:7077
-    hostname: worker-1
+  spark-worker-1:
+    image: bde2020/spark-worker:2.2.1-hadoop2.7
+    container_name: spark-worker-1
+#    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://master:7077
+    hostname: spark-worker-1
+    ports:
+      - "8081:8081"
+    env_file:
+      - ./conf/hadoop.env  
     environment:
+      SPARK_MASTER: "spark://spark-master:7077"
       SPARK_CONF_DIR: /conf
       SPARK_WORKER_CORES: 2
       SPARK_WORKER_MEMORY: 2g
       SPARK_WORKER_PORT: 8881
-      SPARK_WORKER_WEBUI_PORT: 8082
+      SPARK_WORKER_WEBUI_PORT: 8081
       SPARK_PUBLIC_DNS: localhost
-    links:
-      - master
-    expose:
-      - 7012
-      - 7013
-      - 7014
-      - 7015
-      - 8881
     ports:
-      - 8082:8082
+      - 8081:8081
     volumes:
-      - ./conf/worker-1:/conf
+      - ./conf/spark-defaults.conf:/spark/conf/spark-defaults.conf
+      - ./lib:/usr/spark-2.2.1/jars
       - ./data:/tmp/data
     restart: always
 
-  worker-2:
-    image: gschmutz/spark:2.2.1-hadoop-2.7
-    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://master:7077
-    hostname: worker-2
+  spark-worker-2:
+    image: bde2020/spark-worker:2.2.1-hadoop2.7
+    container_name: spark-worker-2
+#    command: bin/spark-class org.apache.spark.deploy.worker.Worker spark://master:7077
+    hostname: spark-worker-2
     environment:
+      SPARK_MASTER: "spark://spark-master:7077"
       SPARK_CONF_DIR: /conf
       SPARK_WORKER_CORES: 2
       SPARK_WORKER_MEMORY: 2g
       SPARK_WORKER_PORT: 8882
-      SPARK_WORKER_WEBUI_PORT: 8083
+      SPARK_WORKER_WEBUI_PORT: 8082
       SPARK_PUBLIC_DNS: localhost
-    links:
-      - master
-    expose:
-      - 7012
-      - 7013
-      - 7014
-      - 7015
-      - 8882
     ports:
-      - 8083:8083
+      - 8082:8082
     volumes:
-      - ./conf/worker-2:/conf
+      - ./conf/spark-defaults.conf:/spark/conf/spark-defaults.conf
+      - ./lib:/usr/spark-2.2.1/jars
       - ./data:/tmp/data
     restart: always
 
   namenode:
     image: bde2020/hadoop-namenode:1.1.0-hadoop2.7.1-java8
     container_name: namenode
+    hostname: namenode
     volumes:
-      - ./data/namenode:/hadoop/dfs/name
+      - ./container-volume/namenode:/hadoop/dfs/name
     environment:
       - CLUSTER_NAME=test
     env_file:
-      - ./hadoop.env
+      - ./conf/hadoop.env
     ports:
-      - 50070:50070
-      - 8020:8020
-    healthcheck:
-      interval: 5s
-      retries: 100 
+      - "9870:9870"
     restart: always
       
-  datanode:
+  datanode-1:
     image: bde2020/hadoop-datanode:1.1.0-hadoop2.7.1-java8
+    container_name: datanode-1
     depends_on: 
       - namenode
     volumes:
-      - ./data/datanode:/hadoop/dfs/data
+      - ./container-volume/datanode:/hadoop/dfs/data
     env_file:
-      - ./hadoop.env
+      - ./conf/hadoop.env
     ports:
-      - 50075:50075
-      - 50010:50010
-    healthcheck:
-      interval: 5s
-      retries: 100 
-    restart: always
-    
-  hue:
-    image: bde2020/hdfs-filebrowser:3.11
-    ports:
-      - 8088:8088
-    environment:
-      - NAMENODE_HOST=namenode    
+      - "9864:9864"
     restart: always
 
+  minio:
+    image: minio/minio
+    container_name: minio
+    hostname: minio
+    ports:
+      - '9000:9000'
+    volumes:
+      - './container-volume/minio/data/:/data'
+#      - './minio/config:/root/.minio'
+    environment:
+      MINIO_ACCESS_KEY: V42FCGRVMK24JJ8DHUYG
+      MINIO_SECRET_KEY: bKhWxVF3kQoLY9kFmt91l+tDrEoZjqnWXzY9Eza
+    command: server /data
+    restart: always
 
