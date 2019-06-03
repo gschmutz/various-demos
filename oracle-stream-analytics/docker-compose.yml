@@ -104,7 +104,7 @@ services:
     image: adminer
     container_name: adminer
     ports:
-      - 38080:8080
+      - 28081:8080
     restart: always
      
   db:
