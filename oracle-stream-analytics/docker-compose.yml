@@ -132,6 +132,7 @@ services:
     image: trivadis/oracle-stream-analytics:18.1
     container_name: oracle-stream-analytics
     hostname: oracle-stream-analytics
+    command: tail -f /dev/null
     ports:
       - 9080:9080
     depends_on:
