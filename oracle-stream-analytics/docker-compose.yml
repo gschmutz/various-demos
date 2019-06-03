@@ -153,7 +153,6 @@ services:
       SPARK_PUBLIC_DNS: localhost
     volumes:
       - ./conf/spark-defaults.conf:/spark/conf/spark-defaults.conf
-      - ./lib:/usr/spark-2.2.1/jars
       - ./data:/tmp/data
     restart: always
 
@@ -178,7 +177,6 @@ services:
       - 8081:8081
     volumes:
       - ./conf/spark-defaults.conf:/spark/conf/spark-defaults.conf
-      - ./lib:/usr/spark-2.2.1/jars
       - ./data:/tmp/data
     restart: always
 
@@ -199,7 +197,6 @@ services:
       - 8082:8082
     volumes:
       - ./conf/spark-defaults.conf:/spark/conf/spark-defaults.conf
-      - ./lib:/usr/spark-2.2.1/jars
       - ./data:/tmp/data
     restart: always
 
