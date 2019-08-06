@@ -1,0 +1,174 @@
+version: '2.1'
+services:
+  zookeeper-1:
+    image: confluentinc/cp-zookeeper:5.3.0
+    container_name: zookeeper-1
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    restart: always
+
+  broker-1:
+    image: confluentinc/cp-kafka:5.3.0
+    container_name: broker-1
+    depends_on:
+      - zookeeper-1
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_BROKER_RACK: 'r1'
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper-1:2181'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://${DOCKER_HOST_IP}:9092'
+#      KAFKA_METRIC_REPORTERS: io.confluent.metrics.reporter.ConfluentMetricsReporter
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_DELETE_TOPIC_ENABLE: 'true'
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_JMX_PORT: 9994
+    restart: always
+
+  kafka-setup:
+    image: confluentinc/cp-kafka:5.3.0
+    hostname: kafka-setup
+    container_name: kafka-setup
+    depends_on:
+      - broker-1
+      - zookeeper-1
+    command: "bash -c 'echo Waiting for Kafka to be ready... && \
+                       cub kafka-ready -b broker-1:9092 1 120 && \
+                       kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 1 --replication-factor 1 --topic ATLAS_HOOK && \
+                       kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 1 --replication-factor 1 --topic ATLAS_ENTITIES'"
+    environment:
+      # The following settings are listed here only to satisfy the image's requirements.
+      # We override the image's `command` anyways, hence this container will not start a broker.
+      KAFKA_BROKER_ID: ignored
+      KAFKA_ZOOKEEPER_CONNECT: ignored
+      
+  schema-registry:
+    image: confluentinc/cp-schema-registry:5.3.0
+    hostname: schema-registry
+    container_name: schema-registry
+    depends_on:
+      - zookeeper-1
+      - broker-1
+    ports:
+      - "8089:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper-1:2181'
+      SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_ORIGIN: '*'
+      SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_METHODS: 'GET,POST,PUT,OPTIONS'
+    restart: always
+
+  schema-registry-ui:
+    image: landoop/schema-registry-ui
+    container_name: schema-registry-ui
+    depends_on:
+      - broker-1
+      - schema-registry
+    ports:
+      - "28002:8000"
+    environment:
+      SCHEMAREGISTRY_URL: 'http://${PUBLIC_IP}:8089'
+    restart: always
+
+  kafka-manager:
+    image: trivadis/kafka-manager
+    container_name: kafka-manager
+    depends_on:
+      - zookeeper-1
+      - broker-1
+    ports:
+      - "29000:9000"
+    environment:
+      ZK_HOSTS: 'zookeeper-1:2181'
+      APPLICATION_SECRET: 'letmein'
+    restart: always
+
+  # Apache Atlas with Cassandra and Elasticsearch Backend Configuration (for JanusGraph)
+
+  atlas:
+    image: trivadis/apache-atlas:2.0.0
+    container_name: atlas
+    ports:
+      - 21000:21000
+    environment:
+      - ATLAS_PROVISION_EXAMPLES=true
+    volumes:
+      - ./conf/atlas-application.properties:/opt/atlas/conf/atlas-application.properties
+    depends_on:
+      - zookeeper-1
+      - broker-1
+      - kafka-setup
+      - cassandra
+    restart: always
+
+  cassandra:
+    image: cassandra:3
+    container_name: cassandra
+    ports:
+      - "9042:9042"
+      - "9160:9160"
+    environment:
+      - CASSANDRA_START_RPC=true
+    restart: always
+
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:6.6.0
+    container_name: elasticsearch
+    environment:
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+      - "http.host=0.0.0.0"
+      - "network.host=0.0.0.0"
+      - "transport.host=127.0.0.1"
+      - "cluster.name=docker-cluster"
+      - "xpack.security.enabled=false"
+      - "discovery.zen.minimum_master_nodes=1"
+    ports:
+      - "9200:9200"
+    restart: always
+
+  amundsenfrontend:
+    image: amundsendev/amundsen-frontend:latest
+    container_name: amundsenfrontend
+    depends_on:
+      - amundsenmetadata
+      - amundsensearch
+    ports:
+      - 5000:5000
+    environment:
+      - METADATASERVICE_BASE=http://amundsenmetadata:5000
+      - SEARCHSERVICE_BASE=http://amundsensearch:5000
+    restart: always
+
+  amundsensearch:
+    image: amundsendev/amundsen-search:latest
+    container_name: amundsensearch
+    ports:
+      - 5001:5000
+    depends_on:
+      - elasticsearch
+    environment:
+      - CREDENTIALS_PROXY_USER=admin
+      - CREDENTIALS_PROXY_PASSWORD=admin
+      - PROXY_ENDPOINT=atlas:21000
+      - PROXY_CLIENT=ATLAS
+    restart: always
+
+  amundsenmetadata:
+    image: amundsendev/amundsen-metadata:latest
+    container_name: amundsenmetadata
+    depends_on:
+      - atlas
+    ports:
+      - 5002:5000
+    environment:
+      - CREDENTIALS_PROXY_USER=admin
+      - CREDENTIALS_PROXY_PASSWORD=admin
+      - PROXY_HOST=atlas
+      - PROXY_PORT=21000
+      - PROXY_CLIENT=ATLAS
+    restart: always
