@@ -14,7 +14,7 @@ curl -X "POST" "$DOCKER_HOST_IP:8083/connectors" \
     "connector.class": "net.mongey.kafka.connect.SlackSinkConnector",
     "tasks.max": "1",
     "topics":"slack-notify",
-    "slack.token":"xoxp-560576135894-558395845680-560731595825-c4ad01f1301f1f789f5b916e4854d610",
+    "slack.token":"xxxxxx",
     "slack.channel":"general",
     "message.template":"tweet by ${USER_SCREENNAME} with ${TEXT}",
     "key.converter": "org.apache.kafka.connect.storage.StringConverter"
