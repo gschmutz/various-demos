@@ -13,10 +13,10 @@ curl -X "POST" "$DOCKER_HOST_IP:8083/connectors" \
   "config": {
     "connector.class": "net.mongey.kafka.connect.SlackSinkConnector",
     "tasks.max": "1",
-    "topics":"tweet-term-v1",
-    "slack.token":"xxxxxxxx",
+    "topics":"slack-notify",
+    "slack.token":"xoxp-560576135894-558395845680-560731595825-c4ad01f1301f1f789f5b916e4854d610",
     "slack.channel":"general",
-    "message.template":"tweet by ${screenname} with ${tweet}",
+    "message.template":"tweet by ${USER_SCREENNAME} with ${TEXT}",
     "key.converter": "org.apache.kafka.connect.storage.StringConverter"
     }
   }'
