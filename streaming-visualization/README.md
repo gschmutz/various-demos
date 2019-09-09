@@ -44,13 +44,35 @@ docker-compose up
 
 ## Prepare
 
+### Create topics
+
 Create the topic `tweet-raw-v1` and `tweet-term-v1`
 
+```
+docker exec -ti broker-1 kafka-topics --create --zookeeper zookeeper-1:2181 --topic tweet-raw-v1 --replication-factor 3 --partitions 8
+```
+
+```
+docker exec -ti broker-1 kafka-topics --create --zookeeper zookeeper-1:2181 --topic tweet-term-v1 --replication-factor 3 --partitions 8
+```
+
+### Setup Kafka Connector for Twitter Source
 
 Get the Kafka Connector from here: <https://github.com/jcustenborder/kafka-connect-twitter>
 
 ```
+cd kafka-connect
+mkdir kafka-connect-twitter-0.2.26
+cd kafka-connect-twitter-0.2.26
+```
+
+```
 wget https://github.com/jcustenborder/kafka-connect-twitter/releases/download/0.2.26/kafka-connect-twitter-0.2.26.tar.gz
+```
+
+```
+tar -xvzf kafka-connect-twitter-0.2.26.tar.gz
+rm kafka-connect-twitter-0.2.26.tar.gz
 ```
 
 Create the connector 
@@ -96,31 +118,59 @@ twitter.oauth.accessTokenSecret=XXXXXX
 ```
 
 
+
+## KSQL Stream Processing
+
 First let's connect to the KSQL CLI
 
 ```
 docker run --rm -it --network analyticsplatform_default confluentinc/cp-ksql-cli:5.1.2 http://ksql-server-1:8088
 ```
 
-## Register Raw Topic Stream
+next we will create the following streams and tables
+
+* `tweet_raw_s` - the raw tweets in a hierarchical format
+* `tweet_s` - the id, text and screenName of all the tweets
+* `tweet_with_geo_s` - the raw tweets in a hierarchical format
+* `tweet_term_s` - all the terms for all the tweets (hashtag and word)
+* `tweet_terms_per_min_t` - a table with the terms per minute
+* `tweet_terms_per_hour_t` - a table with the terms per hour
+* `tweet_count_by_min_t` - the number of tweets by minute
+* `tweet_count_by_hour_t` - the number of tweets by hour
+
+### Register Raw Topic Stream
+
+First we create a new stream `tweet_raw_s` which holds all the raw tweets:
 
 ```
 CREATE STREAM tweet_raw_s WITH (KAFKA_TOPIC='tweet-raw-v1', VALUE_FORMAT='AVRO');
 ```
 
-## Tweets with Geo Location
+### Tweets
+
+```
+CREATE STREAM tweet_s WITH (KAFKA_TOPIC='tweet-v1', VALUE_FORMAT='AVRO', PARTITIONS=8)
+AS SELECT id
+,	createdAt
+,	text
+,	user->screenName
+FROM tweet_raw_s;
+```
+
+### Tweets with Geo Location
 
 ```
 CREATE STREAM tweet_with_geo_s WITH (KAFKA_TOPIC='tweet-with-geo-v1', VALUE_FORMAT='AVRO', PARTITIONS=8)
 AS SELECT id
 ,	text
+,	user->screenName
 ,	geolocation->latitude
 ,	geolocation->longitude
 FROM tweet_raw_s
 WHERE geolocation->latitude is not null;
 ```
 
-## Create the Term Stream
+### Create the Term Stream
 
 Register the Avro Schema for terms as subject `tweet-term-v1-value`
 
@@ -193,7 +243,7 @@ WITH (kafka_topic='tweet-term-v1', \
 value_format='AVRO');
 ```
 
-## Publish Hashtags to Term Stream
+#### Populate Hashtags
 
 Hashtags are organized as an array. Currently there is no way in KSQL to dynamically read over the arrays, all you can do is access it by index. 
 
@@ -232,7 +282,7 @@ select type, collect_set (term) from tweet_term_s window tumbling (size 30 secon
 select type, histogram (term) from tweet_term_s window tumbling (size 30 seconds) group by type;
 ```
 
-## Populate Words
+#### Populate Words
 
 ```
 CREATE STREAM tweet_words_s WITH (kafka_topic='tweet-words-v1', value_format='AVRO', PARTITIONS=8)
@@ -274,7 +324,7 @@ INSERT INTO tweet_term_s \
 SELECT id, lang, replacestring(replacestring(replacestring(replacestring(TRIM(word[10]),'#',''),'@',''),'.',''),':','') as term, 'word' as type from tweet_words_s where word[10] IS NOT NULL;
 ```
 
-## Terms per 1 minute
+### Terms per 1 minute
 
 ```
 DROP TABLE tweet_terms_per_min_t;
@@ -287,7 +337,7 @@ SELECT windowstart() windowStart, windowend() windowEnd, type, term, count(*) te
 SELECT TIMESTAMPTOSTRING(windowStart, 'yyyy-MM-dd HH:mm:ss.SSS'), TIMESTAMPTOSTRING(windowEnd, 'yyyy-MM-dd HH:mm:ss.SSS'), tweets_per_min, term FROM tweet_terms_per_min_t WHERE type = 'hashtag';
 ```
 
-## Terms per hour
+### Terms per 1 hour
 
 ```
 DROP TABLE tweet_terms_per_hour_t;
@@ -296,11 +346,12 @@ CREATE TABLE tweet_terms_per_hour_t AS
 SELECT windowstart() windowStart, windowend() windowEnd, type, term, count(*) terms_per_hour FROM tweet_term_s window TUMBLING (SIZE 60 minutes) where lang = 'en' or lang = 'de' GROUP by type, term;
 ```
 
-## Top 10 Terms per hour (this does not work!)
+### Top 10 Terms per hour (this does not work!)
 
 
 ```
 DROP STREAM tweet_terms_per_hour_s;
+
 CREATE STREAM tweet_terms_per_hour_s WITH (KAFKA_TOPIC='TWEET_TERMS_PER_HOUR_T', VALUE_FORMAT='AVRO');
 ```
 
@@ -313,7 +364,7 @@ AS SELECT type, windowstart, topkdistinct (CONCAT(LEFTPAD(CAST(terms_per_hour AS
 
 
 
-## Tweets Total
+### Tweets Total
 
 First we create a stream with an "artifical" group id so that we can count on "one single group" later, as KSQL does not allow an aggregate operation without a group by operation. 
 
@@ -326,24 +377,23 @@ TIMESTAMPTOSTRING(ROWTIME, 'yyyy-MM-dd HH:mm:ss.SSS') AS rowtimefull, SUBSTRING(
 FROM tweet_raw_s;
 ```
 
-```
-CREATE TABLE tweet_count_t
-AS SELECT groupid, COUNT(*) nof_tweets FROM tweet_count_s GROUP BY groupid;
-```
+now with this stream we can count by hour
 
 ```
+DROP TABLE tweet_count_by_hour_t;
+
 CREATE TABLE tweet_count_by_hour_t
-AS SELECT groupid, COUNT(*) nof_tweets FROM tweet_count_s WINDOW TUMBLING (SIZE 1 HOUR) GROUP BY groupid;
+AS SELECT groupid, windowstart() windowStart, windowend() windowEnd, COUNT(*) tweets_per_hour FROM tweet_count_s WINDOW TUMBLING (SIZE 1 HOUR) GROUP BY groupid;
 ```
 
-
-## Tweets per minute
+and count by minute
 
 ```
-DROP TABLE tweet_tweets_per_min_t;
+DROP TABLE tweet_count_by_min_t;
 
-CREATE TABLE tweet_tweets_per_min_t
-AS SELECT groupid, windowstart() windowStart, windowend() windowEnd, count(*) tweets_per_min from tweet_count_s  window tumbling (size 60 seconds) group by groupid; 
+CREATE TABLE tweet_count_by_min_t
+AS SELECT groupid, windowstart() windowStart, windowend() windowEnd, count(*) tweets_per_min FROM tweet_count_s  
+WINDOW TUMBLING (size 60 seconds) GROUP BY groupid; 
 ```
 
 
@@ -372,6 +422,10 @@ AS SELECT user_screenname, COUNT(*) nof_tweets_by_user FROM tweet_tweets_with_us
 Navigate to <http://127.0.0.1:7999/arc/apps/login?next=/arc/apps/> and login as user `admin` with password `admin`.
 
 ## Tipboard Dashboard
+
+```
+docker run --rm -it --network analyticsplatform_default confluentinc/cp-ksql-cli:5.1.2 http://ksql-server-1:8088
+```
 
 <http://allegro.tech/tipboard/>
 <https://tipboard.readthedocs.io>
@@ -406,6 +460,10 @@ AS SELECT id, user->screenName screenName, text FROM tweet_raw_s;
 
 
 ```
+python consume-json-nof-tweets.py 
+```
+
+```
 curl -X POST http://localhost:80/api/v0.1/api-key-here/push -d "tile=just_value" -d "key=nof_tweets" -d 'data={"title": "Number of Tweets:", "description": "(1 hour)", "just-value": "23"}'
 ```
 
@@ -425,21 +483,64 @@ DROP STREAM slack_notify_s;
 
 CREATE STREAM slack_notify_s WITH (KAFKA_TOPIC='slack-notify', VALUE_FORMAT='AVRO')
 AS SELECT id, text, user->screenname as user_screenname, createdat from tweet_raw_s
-where user->screenname = 'gschmutz' or user->screenname = 'rmoff';
+where user->screenname = 'gschmutz' or user->screenname = 'VoxxedZurich';
 ```
 
-## Sample Tweets
+# Demo
+
+## Slack
 
 ```
-Streaming Visualization in Action: Now showing integration with #KafkaConnect and #Slack #bigdata2019 #BDTWS2019
-```
-
-```
-Streaming Visualization in Action: Now showing integration with #Kafka and #Tipboard #bigdata2019 #BDTWS2019
+kafkacat -b analyticsplatform -t tweet-raw-v1 -o end -q
 ```
 
 ```
-Streaming Visualization in Action: Now showing integration with #Kafka and #Tipboard #bigdata2019 #BDTWS2019
+kafkacat -b analyticsplatform -t slack-notify -o end -q
+```
+
+```
+Live Demo "Streaming Visualization": Now showing integration with #KafkaConnect and #Slack #bigdata2019 #vdz19
+```
+
+## Tipboard
+
+```
+Live Demo "Streaming Visualization": Now showing integration with #Kafka and #Tipboard #vdz19
+```
+
+## Arcadia Data
+
+```
+SELECT * FROM tweet_raw_s;
+```
+
+```
+DESCRIBE tweet_raw_s;
+```
+
+```
+SELECT text, user->screenname FROM tweet_raw_s;
+```
+
+```
+DESCRIBE tweet_term_s;
+```
+
+```
+SELECT * FROM tweet_term_s;
+```
+
+```
+SELECT windowstart() windowStart, windowend() windowEnd, type, term, count(*) terms_per_min 
+FROM tweet_term_s 
+WINDOW TUMBLING (SIZE 60 seconds) 
+WHERE lang = 'en' or lang = 'de' 
+GROUP by type, term;
+```
+
+
+```
+Live Demo "Streaming Visualization": Now showing integration with #Kafka, #KSQL and #ArcadiaData #vdz19
 ```
 
 
