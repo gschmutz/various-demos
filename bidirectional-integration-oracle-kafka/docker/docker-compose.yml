@@ -2,7 +2,7 @@ version: "2.1"
 
 services:
   zookeeper-1:
-    image: confluentinc/cp-zookeeper:5.1.2
+    image: confluentinc/cp-zookeeper:5.3.0
     container_name: zookeeper-1
     ports:
       - "2181:2181"
@@ -12,7 +12,7 @@ services:
     restart: always
 
   broker-1:
-    image: confluentinc/cp-kafka:5.1.2
+    image: confluentinc/cp-kafka:5.3.0
     container_name: broker-1
     depends_on:
       - zookeeper-1
@@ -32,7 +32,7 @@ services:
     restart: always
 
   broker-2:
-    image: confluentinc/cp-kafka:5.1.2
+    image: confluentinc/cp-kafka:5.3.0
     container_name: broker-2
     depends_on:
       - zookeeper-1
@@ -52,7 +52,7 @@ services:
     restart: always
 
   broker-3:
-    image: confluentinc/cp-kafka:5.1.2
+    image: confluentinc/cp-kafka:5.3.0
     container_name: broker-3
     depends_on:
       - zookeeper-1
@@ -72,7 +72,7 @@ services:
     restart: always
       
   schema-registry:
-    image: confluentinc/cp-schema-registry:5.1.2
+    image: confluentinc/cp-schema-registry:5.3.0
     hostname: schema-registry
     container_name: schema-registry
     depends_on:
@@ -88,7 +88,7 @@ services:
     restart: always
       
   connect-1:
-    image: confluentinc/cp-kafka-connect:5.1.2
+    image: confluentinc/cp-kafka-connect:5.3.0
     container_name: connect-1
     depends_on:
       - zookeeper-1
@@ -123,7 +123,7 @@ services:
     restart: always
 
   connect-2:
-    image: confluentinc/cp-kafka-connect:5.1.2
+    image: confluentinc/cp-kafka-connect:5.3.0
     container_name: connect-2
     depends_on:
       - zookeeper-1
@@ -158,7 +158,7 @@ services:
     restart: always
 
   ksql-server-1:
-    image: confluentinc/cp-ksql-server:5.1.2
+    image: confluentinc/cp-ksql-server:5.3.0
     container_name: ksql-server-1
     ports:
       - '8088:8088'
@@ -181,7 +181,7 @@ services:
     restart: always
 
   rest-proxy-1:
-    image: confluentinc/cp-kafka-rest:5.1.2
+    image: confluentinc/cp-kafka-rest:5.3.0
     container_name: rest-proxy-1
     depends_on:
       - broker-1
@@ -196,7 +196,7 @@ services:
     restart: always
 
   streamsets:
-    image: trivadisbds/streamsets-kafka-hadoop-aws:3.7.2
+    image: trivadisbds/streamsets-kafka-hadoop-aws
     container_name: streamsets
     ports:
       - "18630:18630"
@@ -239,7 +239,7 @@ services:
     restart: always
 
   kafka-connect-ui:
-    image: landoop/kafka-connect-ui:0.9.5
+    image: landoop/kafka-connect-ui
     container_name: kafka-connect-ui
     ports:
       - "28001:8000"
@@ -265,29 +265,5 @@ services:
       APPLICATION_SECRET: 'letmein'
     restart: always
 
-  kafdrop:
-    image: thomsch98/kafdrop:latest
-    container_name: kafdrop
-    ports:
-      - "29020:9020" 
-    environment:
-      ZK_HOSTS: zookeeper-1:2181
-      LISTEN: 9020
-    restart: always
-
-  kadmin:
-    image: hasnat/kadmin
-    container_name: kadmin
-    ports:
-      - "28080:8080"
-    environment:
-      ZOOKEEPER_HOST: zookeeper-1:2181
-      KAFKA_HOST: broker-1:9092
-      #SECURITY_PROTOCOL: SSL
-      TRUST_STORE_LOCATION: ssl/client.truststore.jks
-      TRUST_STORE_PASSWORD: password
-      KEY_STORE_LOCATION: ssl/server.keystore.jks
-      KEY_STORE_PASSWORD: password
-      KEY_PASSWORD: password
       
 
