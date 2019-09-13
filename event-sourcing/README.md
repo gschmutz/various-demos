@@ -13,10 +13,11 @@ curl -X POST -H 'Content-Type: application/json' -i http://analyticsplatform:808
 Deposit some money
 
 ```
-curl -X PUT -H 'Content-Type: application/json' -i http://analyticsplatform:8080/api/deposit/abc983 --data '{
+curl -X PUT -H 'Content-Type: application/json' -i http://localhost:8080/api/deposit/abc983 --data '{
   "id": "abc983",
   "amount": "200"
 }'
 ```
 
 
+java -jar target/

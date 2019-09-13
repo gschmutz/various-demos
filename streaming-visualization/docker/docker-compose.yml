@@ -290,6 +290,8 @@ services:
     depends_on:
       - broker-1
     restart: always
+
+
     
   adminer:
     image: adminer
