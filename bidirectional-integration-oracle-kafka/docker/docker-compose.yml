@@ -195,6 +195,28 @@ services:
       KAFKA_REST_HOST_NAME: 'rest-proxy'
     restart: always
 
+  kafka-setup:
+    image: confluentinc/cp-kafka:5.3.0
+    hostname: kafka-setup
+    container_name: kafka-setup
+    depends_on:
+      - broker-1
+      - broker-2
+      - broker-3
+      - zookeeper-1
+    command: "bash -c 'echo Waiting for Kafka to be ready... && \
+                       cub kafka-ready -b broker-1:9092 1 240 && \
+                       kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic order && \
+                       kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic order-item && \
+                       kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic soaring-customerstatus 
+                 '"
+    environment:
+      # The following settings are listed here only to satisfy the image's requirements.
+      # We override the image's `command` anyways, hence this container will not start a broker.
+      KAFKA_BROKER_ID: ignored
+      KAFKA_ZOOKEEPER_CONNECT: ignored            
+
+
   streamsets:
     image: trivadisbds/streamsets-kafka-hadoop-aws
     container_name: streamsets
