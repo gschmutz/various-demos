@@ -208,7 +208,7 @@ services:
                        cub kafka-ready -b broker-1:9092 1 240 && \
                        kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic order && \
                        kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic order-item && \
-                       kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic soaring-customerstatus 
+                       kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic customer 
                  '"
     environment:
       # The following settings are listed here only to satisfy the image's requirements.
