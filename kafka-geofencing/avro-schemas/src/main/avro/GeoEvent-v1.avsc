@@ -1,0 +1,27 @@
+{
+  "type": "record",
+  "name": "GeoEvent",
+  "namespace": "com.trivadis.demo.avro.geoevent.v1",
+  "fields": [
+    {
+      "name": "objectId",
+      "type": ["null", "int"]
+    },
+    {
+      "name": "status",
+      "type": ["null", "string"]
+    },
+    {
+      "name": "eventTime",
+      "type": ["null", {"type" : "long","logicalType" : "timestamp-millis"}]
+    },
+    {
+      "name": "geofenceId",
+      "type": ["null", "int"]
+    },
+	{
+	  "name": "geofenceName",
+	  "type": ["null", "string"]
+	}
+  ]
+}

@@ -1,7 +1,7 @@
 {
   "type": "record",
-  "name": "GeoFences",
-  "namespace": "com.trivadis.demo.avro.geofences.v1",
+  "name": "GeoFence",
+  "namespace": "com.trivadis.demo.avro.geofence.v1",
   "fields": [
     {
       "name": "id",
@@ -10,6 +10,13 @@
         "int"
       ]
     },
+	{
+	  "name": "name",
+	  "type": [
+		"null",
+		"string"
+	  ]
+	},    
     {
       "name": "wkt",
       "type": [
@@ -22,7 +29,8 @@
       "type": [
         "null",
         "string"
-      ]
+      ],
+      "default": null
     }
   ]
 }

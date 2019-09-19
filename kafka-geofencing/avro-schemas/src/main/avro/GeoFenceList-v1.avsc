@@ -1,0 +1,54 @@
+{
+  "type": "record",
+  "name": "GeoFenceList",
+  "namespace": "com.trivadis.demo.avro.geofences.v1",
+  "fields": [
+    {
+      "name": "geoFences",
+      "type": [
+        "null",
+        {
+          "type": "array",
+          "items": {
+            "type": "record",
+            "name": "GeoFenceItem",
+              "fields": [   
+				{
+				  "name": "id",
+				  "type": [
+					"null",
+					"int"
+				  ],
+      			  "order": "ignore"
+				},
+				{
+				  "name": "name",
+				  "type": [
+					"null",
+					"string"
+				  ]
+				},
+				{
+				  "name": "wkt",
+				  "type": [
+					"null",
+					"string"
+				  ],
+      			  "order": "ignore"
+				},
+				{
+				  "name": "typ",
+				  "type": [
+					"null",
+					"string"
+				  ],
+      			  "order": "ignore"
+				}
+			]
+          }
+        }
+      ],
+      "doc": "collection of geofences"
+    }
+  ]
+}
