@@ -1,6 +1,6 @@
 {
   "type": "record",
-  "name": "PositionMecomo",
+  "name": "ObjectPosition",
   "namespace": "com.trivadis.demo.avro.position.v1",
   "fields": [
     {
