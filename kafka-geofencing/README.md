@@ -523,7 +523,7 @@ PARTITION BY geo_hash;
 now call the geo_fence UDF
 
 ```
-DROP STREAM geo_fence_status_s DELETE TOPIC;
+DROP STREAM a04_geo_fence_status_s DELETE TOPIC;
 
 CREATE STREAM a04_geo_fence_status_s
 WITH (PARTITIONS=8, KAFKA_TOPIC='vehicle_position_by_geohash', value_format='AVRO')
@@ -871,14 +871,92 @@ POLYGON ((-90.23081789920012 38.50459453822468, -90.16627322146574 38.4959942174
 ```
 
 
+## Demo
 
-## Kafka Connect
+DROP STREAM demo_geo_fence_s;
+
+CREATE STREAM demo_geo_fence_s 
+  (id VARCHAR,
+   name VARCHAR,
+   geometry_wkt VARCHAR)
+  WITH (kafka_topic='geo_fence', 
+        value_format='JSON',
+        key='id');
 
 ```
-mvn archetype:generate \
-    -DarchetypeGroupId=com.github.jcustenborder.kafka.connect \
-    -DarchetypeArtifactId=kafka-connect-quickstart \
-    -DarchetypeVersion=2.0.0-cp1 
+DROP STREAM IF EXISTS demo_geo_fence_by_geohash_s DELETE TOPIC;
+
+CREATE STREAM demo_geo_fence_by_geohash_s
+WITH (PARTITIONS=8, kafka_topic='a04_geo_fence_by_geohash', value_format='JSON')
+AS
+SELECT geo_hash(geometry_wkt, 3)[0] geo_hash, id, name, geometry_wkt
+FROM demo_geo_fence_s
+PARTITION by geo_hash;
 ```
 
+```
+INSERT INTO demo_geo_fence_by_geohash_s
+SELECT geo_hash(geometry_wkt, 3)[1] geo_hash, id, name, geometry_wkt
+FROM demo_geo_fence_s
+WHERE geo_hash(geometry_wkt, 3)[1] IS NOT NULL
+PARTITION BY geo_hash;
+```
+
+```
+INSERT INTO demo_geo_fence_by_geohash_s
+SELECT geo_hash(geometry_wkt, 3)[2] geo_hash, id, name, geometry_wkt
+FROM demo_geo_fence_s
+WHERE geo_hash(geometry_wkt, 3)[2] IS NOT NULL
+PARTITION BY geo_hash;
+```
+
+```
+INSERT INTO a04_geo_fence_by_geohash_s
+SELECT geo_hash(geometry_wkt, 3)[3] geo_hash, id, name, geometry_wkt
+FROM a04_geo_fence_s
+WHERE geo_hash(geometry_wkt, 3)[3] IS NOT NULL
+PARTITION BY geo_hash;
+```
+
+
+Now we create a table which groups the geo-fences by geohash and creates a set with all geometries per geohash. Can be 1 to many, depending on how many geo-fence geometries belong to a given geohash. 
+
+```
+DROP TABLE IF EXISTS demo_geo_fence_by_geohash_t DELETE TOPIC;
+
+CREATE TABLE demo_geo_fence_by_geohash_t
+WITH (PARTITIONS=8, KAFKA_TOPIC='geo_fence_by_geohash_t', VALUE_FORMAT='JSON')
+AS
+SELECT geo_hash, COLLECT_SET(id + ':' + geometry_wkt) id_geometry_wkt_list, COLLECT_SET(geometry_wkt) geometry_wkt_list, COLLECT_SET(id) id_list
+FROM demo_geo_fence_by_geohash_s
+GROUP BY geo_hash;
+```
+
+Create a new stream `a04_vehicle_position_by_geohash_s` which enriches the vehicle positions with the geohash the LatLong belongs to ((currently using precision of 3, but can be increased or reduced upon use-case, but needs to be the same as above for the geo fences).
+
+```
+DROP STREAM IF EXISTS demo_vehicle_position_by_geohash_s DELETE TOPIC;
+
+CREATE STREAM demo_vehicle_position_by_geohash_s
+WITH (PARTITIONS=8, KAFKA_TOPIC='vehicle_position_by_geohash', value_format='AVRO')
+AS
+SELECT vp.id, vp.latitude, vp.longitude, geo_hash(vp.latitude, vp.longitude, 3) geo_hash
+FROM vehicle_position_s vp
+PARTITION BY geo_hash;
+```
+
+now call the geo_fence UDF
+
+```
+DROP STREAM demo_geo_fence_status_s DELETE TOPIC;
+
+CREATE STREAM demo_geo_fence_status_s
+WITH (PARTITIONS=8, KAFKA_TOPIC='demo_geo_fence_status', value_format='AVRO')
+AS
+SELECT vp.id, vp.latitude, vp.longitude, vp.geo_hash, gf.geometry_wkt_list,
+geo_fence_bulk (vp.latitude, vp.longitude, gf.id_geometry_wkt_list) fence_status
+FROM demo_vehicle_position_by_geohash_s vp \
+LEFT JOIN demo_geo_fence_by_geohash_t gf \
+ON (vp.geo_hash = gf.geo_hash);
+```
 

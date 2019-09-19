@@ -1,0 +1,23 @@
+{
+  "type": "record",
+  "name": "PositionMecomo",
+  "namespace": "com.trivadis.demo.avro.position.v1",
+  "fields": [
+    {
+      "name": "deviceId",
+      "type": ["null", "int"]
+    },
+    {
+      "name": "eventTime",
+      "type": ["null", {"type" : "long","logicalType" : "timestamp-millis"}]
+     },
+    {
+      "name": "latitude",
+      "type": ["null", "double"]
+    },
+    {
+      "name": "longitude",
+      "type": ["null", "double"]
+    }
+  ]
+}
