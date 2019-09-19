@@ -114,11 +114,9 @@
 						<param>http://${PUBLIC_IP}:18081</param>
 					</schemaRegistryUrls>
 					<subjects>
-						<tkL4.barge_geofences-value>src/main/avro/GeoEvent-v1.avsc</tkL4.barge_geofences-value>
-						<tkL4.barge_geofences-value>src/main/avro/GeoEventList-v1.avsc</tkL4.barge_geofences-value>
-						<tkL4.barge_geofences-value>src/main/avro/GeoFence-v1.avsc</tkL4.barge_geofences-value>
-						<tkL4.barge_geofences-value>src/main/avro/GeoFenceList-v1.avsc</tkL4.barge_geofences-value>
-						<tkL4.barge_positions_mecomo-value>src/main/avro/Position-v1.avsc</tkL4.barge_positions_mecomo-value>
+						<geo_event-value>src/main/avro/GeoEvent-v1.avsc</geo_event-value>
+						<geo_fence-value>src/main/avro/GeoFence-v1.avsc</geo_fence-value>
+						<object_position-value>src/main/avro/Position-v1.avsc</object_position-value>
 					</subjects>
 				</configuration>
 				<goals>
