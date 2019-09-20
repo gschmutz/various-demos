@@ -36,8 +36,8 @@ import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 
 public class KafkaStreamsGeoFencesApp {
 
-	static final String GEOFENCES_KEYEDBY_GEOHASH = "tkL4.barge_geofences_keyedby_geohash";
-	static final String GEOFENCE = "tkL4.barge_geofence";
+	static final String GEO_FENCES_KEYEDBY_GEOHASH = "geo_fences_keyedby_geohash";
+	static final String GEO_FENCE = "geo_fence";
 
 	private static <VT extends SpecificRecord> SpecificAvroSerde<VT> createSerde(String schemaRegistryUrl) {
 		SpecificAvroSerde<VT> serde = new SpecificAvroSerde<>();
@@ -157,7 +157,7 @@ public class KafkaStreamsGeoFencesApp {
 		final StreamsBuilder builder = new StreamsBuilder();
 
 		// get the stream of GeoFences
-		KStream<String, GeoFence> geoFence = builder.stream(GEOFENCE);
+		KStream<String, GeoFence> geoFence = builder.stream(GEO_FENCE);
 		
 		// retrieve the an array of geohash for the covering bounding box around the geofence and flat map it so that we get a new tuple with key=geohash and value=GeoFencesByGeoHash 
 		// TODO: create a constant for the GeoHash lenght (5)
@@ -178,7 +178,7 @@ public class KafkaStreamsGeoFencesApp {
 				Materialized.<String, GeoFenceList, KeyValueStore<Bytes,byte[]>>as("geofences-by-geohash-store"));
 		
 		// produce to the topic
-		geofencesByGeohash.toStream().to(GEOFENCES_KEYEDBY_GEOHASH, Produced.<String, GeoFenceList> keySerde(stringSerde));										
+		geofencesByGeohash.toStream().to(GEO_FENCES_KEYEDBY_GEOHASH, Produced.<String, GeoFenceList> keySerde(stringSerde));										
 										
 		return new KafkaStreams(builder.build(), streamsConfiguration);
 	}

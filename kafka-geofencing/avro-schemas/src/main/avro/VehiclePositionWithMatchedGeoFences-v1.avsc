@@ -1,0 +1,57 @@
+{
+  "type": "record",
+  "name": "VehiclePositionWithMatchedGeoFences",
+  "namespace": "com.trivadis.demo.avro.geoevent.v1",
+  "fields": [
+    {
+      "name": "vehicleId",
+      "type": ["null", "int"]
+    },
+    {
+      "name": "positionId",
+      "type": ["null", "long"]
+    },
+    {
+      "name": "latitude",
+      "type": ["null", "double"]
+    },
+    {
+      "name": "longitude",
+      "type": ["null", "double"]
+    },
+    {
+      "name": "eventTime",
+      "type": ["null", {"type" : "long","logicalType" : "timestamp-millis"}]
+    },
+    {
+      "name": "matchedGeoFences",
+      "type": [
+        "null",
+        {
+          "type": "array",
+          "items": {
+            "type": "record",
+            "name": "MatchedGeoFence",
+            "fields": [    
+			    {
+      				"name": "id",
+      				"type": ["null", "int"],
+    				"order": "ignore"
+    			},
+    			{
+      				"name": "name",
+      				"type": ["null", "string"]
+    			},
+    			{
+      				"name": "distance",
+      				"type": ["null", "double"],
+      				"order": "ignore"
+    			}
+    		]
+          }
+        }
+      ],
+      "doc": "collection of matched geofences"
+    }
+  ]
+}

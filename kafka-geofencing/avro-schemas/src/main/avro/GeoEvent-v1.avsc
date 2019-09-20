@@ -4,7 +4,7 @@
   "namespace": "com.trivadis.demo.avro.geoevent.v1",
   "fields": [
     {
-      "name": "objectId",
+      "name": "vehicleId",
       "type": ["null", "int"]
     },
     {

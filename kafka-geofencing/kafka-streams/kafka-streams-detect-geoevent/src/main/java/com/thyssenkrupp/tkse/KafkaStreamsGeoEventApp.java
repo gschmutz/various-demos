@@ -26,9 +26,9 @@ import org.apache.kafka.streams.state.KeyValueStore;
 import org.apache.kafka.streams.state.StoreBuilder;
 import org.apache.kafka.streams.state.Stores;
 
-import com.thyssenkrupp.tkse.avro.geoevent.v1.GeoEvent;
-import com.thyssenkrupp.tkse.avro.geoevent.v1.MatchedGeoFence;
-import com.thyssenkrupp.tkse.avro.geoevent.v1.PositionWithMatchedGeoFences;
+import com.trivadis.demo.avro.geoevent.v1.GeoEvent;
+import com.trivadis.demo.avro.geoevent.v1.MatchedGeoFence;
+import com.trivadis.demo.avro.geoevent.v1.VehiclePositionWithMatchedGeoFences;
 
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
@@ -140,31 +140,31 @@ public class KafkaStreamsGeoEventApp {
 		// MonitoringInterceptorUtils.maybeConfigureInterceptorsStreams(streamsConfiguration);
 
 
-		final SpecificAvroSerde<PositionWithMatchedGeoFences> positionWithMatchedGeoFencesSerde = createSerde(schemaRegistryUrl);
+		final SpecificAvroSerde<VehiclePositionWithMatchedGeoFences> positionWithMatchedGeoFencesSerde = createSerde(schemaRegistryUrl);
 		
 		final StreamsBuilder builder = new StreamsBuilder();
 
 		
 		// read the stream from the matched_geofences topic 
-		final KStream<String, PositionWithMatchedGeoFences> positionWithMatchedGeoFences = builder.stream(MATCHED_FENCE_STREAM);
+		final KStream<String, VehiclePositionWithMatchedGeoFences> positionWithMatchedGeoFences = builder.stream(MATCHED_FENCE_STREAM);
 		
 		// geo_event handling
-		final StoreBuilder<KeyValueStore<String, PositionWithMatchedGeoFences>> bargeGeoFenceStatusStore = Stores
+		final StoreBuilder<KeyValueStore<String, VehiclePositionWithMatchedGeoFences>> bargeGeoFenceStatusStore = Stores
 				.keyValueStoreBuilder(Stores.persistentKeyValueStore("GeoFenceSnapshotStore"), Serdes.String(), positionWithMatchedGeoFencesSerde)
 				.withCachingEnabled();
 		builder.addStateStore(bargeGeoFenceStatusStore);
 
 		KStream<String, List<GeoEvent>> geoEvents = positionWithMatchedGeoFences.transformValues(() -> new CommandHandler(bargeGeoFenceStatusStore.name()), bargeGeoFenceStatusStore.name());
 		KStream<String, GeoEvent> geoEvent = geoEvents.flatMapValues(v -> v);
-		KStream<String, GeoEvent> geoEventByBargeId = geoEvent.selectKey((k, v) -> v.getBargeId().toString());
+		KStream<String, GeoEvent> geoEventByBargeId = geoEvent.selectKey((k, v) -> v.getVehicleId().toString());
 		geoEventByBargeId.to(GEO_EVENT_STREAM);
 		
 		return new KafkaStreams(builder.build(), streamsConfiguration);
 	}
 	
-	private static final class CommandHandler implements ValueTransformer<PositionWithMatchedGeoFences, List<GeoEvent>> {
+	private static final class CommandHandler implements ValueTransformer<VehiclePositionWithMatchedGeoFences, List<GeoEvent>> {
 		final private String storeName;
-	    private KeyValueStore<String, PositionWithMatchedGeoFences> stateStore;
+	    private KeyValueStore<String, VehiclePositionWithMatchedGeoFences> stateStore;
 	    private ProcessorContext context;	    
 	    
 		public CommandHandler(final String storeName) {
@@ -176,17 +176,17 @@ public class KafkaStreamsGeoEventApp {
 		@Override
 		public void init(ProcessorContext context) {
 			this.context = context;
-	        stateStore = (KeyValueStore<String, PositionWithMatchedGeoFences>) this.context.getStateStore(storeName);			
+	        stateStore = (KeyValueStore<String, VehiclePositionWithMatchedGeoFences>) this.context.getStateStore(storeName);			
 		}
 
 		@Override
-		public List<GeoEvent> transform(PositionWithMatchedGeoFences positionWithMatchedGeoFences) {
+		public List<GeoEvent> transform(VehiclePositionWithMatchedGeoFences positionWithMatchedGeoFences) {
 	
-			String key = positionWithMatchedGeoFences.getBargeId().toString();
+			String key = positionWithMatchedGeoFences.getVehicleId().toString();
 
 			// if first time, then init with current and will do nothing on next if
 			if (stateStore.get(key) == null) {
-				stateStore.put(key, new PositionWithMatchedGeoFences(null, null, null, null, null, Collections.emptyList()));
+				stateStore.put(key, new VehiclePositionWithMatchedGeoFences(null, null, null, null, null, Collections.emptyList()));
 			} 
 			
 			List<MatchedGeoFence> currentFences = positionWithMatchedGeoFences.getMatchedGeoFences();
@@ -203,8 +203,8 @@ public class KafkaStreamsGeoEventApp {
 			List<GeoEvent> geoEvents = new ArrayList<GeoEvent>();
 			
 			// TODO "LEAVE" and "ENTER" as constants
-			allLeft.forEach(f -> geoEvents.add(new GeoEvent(positionWithMatchedGeoFences.getBargeId(), "LEAVE", positionWithMatchedGeoFences.getEventTime(), f.getId(), f.getShortName())));
-			allEntered.forEach(f -> geoEvents.add(new GeoEvent(positionWithMatchedGeoFences.getBargeId(), "ENTER", positionWithMatchedGeoFences.getEventTime(), f.getId(), f.getShortName())));
+			allLeft.forEach(f -> geoEvents.add(new GeoEvent(positionWithMatchedGeoFences.getVehicleId(), "LEAVE", positionWithMatchedGeoFences.getEventTime(), f.getId(), f.getName())));
+			allEntered.forEach(f -> geoEvents.add(new GeoEvent(positionWithMatchedGeoFences.getVehicleId(), "ENTER", positionWithMatchedGeoFences.getEventTime(), f.getId(), f.getName())));
 			
 			return geoEvents;
 		}

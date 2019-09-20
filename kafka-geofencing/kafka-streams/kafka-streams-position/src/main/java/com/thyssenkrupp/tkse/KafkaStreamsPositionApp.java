@@ -23,24 +23,21 @@ import org.apache.kafka.streams.kstream.Joined;
 import org.apache.kafka.streams.kstream.KStream;
 import org.apache.kafka.streams.kstream.KTable;
 
-import com.thyssenkrupp.tkse.avro.barge.v1.Barge;
-import com.thyssenkrupp.tkse.avro.geoevent.v1.MatchedGeoFence;
-import com.thyssenkrupp.tkse.avro.geoevent.v1.PositionWithMatchedGeoFences;
-import com.thyssenkrupp.tkse.avro.geofences.v1.GeoFenceItem;
-import com.thyssenkrupp.tkse.avro.geofences.v1.GeoFenceList;
-import com.thyssenkrupp.tkse.avro.positionmecomo.v1.PositionMecomo;
-import com.thyssenkrupp.tkse.avro.positionmecomo.v1.PositionMecomoRaw;
+import com.trivadis.demo.avro.geofences.v1.GeoFenceItem;
+import com.trivadis.demo.avro.geofences.v1.GeoFenceList;
+import com.trivadis.demo.avro.position.v1.VehiclePosition;
+import com.trivadis.demo.avro.position.v1.VehiclePositionWithGeohash;
 
 import io.confluent.kafka.serializers.AbstractKafkaAvroSerDeConfig;
 import io.confluent.kafka.streams.serdes.avro.SpecificAvroSerde;
 
-public class KafkaStreamsPositionMecomoApp {
+public class KafkaStreamsPositionApp {
 
-	static final String POSITION_MECOMO_RAW_STREAM = "tkL4.barge_position_mecomo_raw";
-	static final String POSITION_MECOMO_STREAM = "tkL4.barge_position_mecomo";
-	static final String MATCHED_FENCE = "tkL4.barge_position_matched_geofences";
-	static final String GEOFENCE_KEYEDBY_GEOHASH = "tkL4.barge_geofence_keyedby_geohash";
-	static final String BARGE_STREAM = "tkL4.barge";
+	static final String VEHICLE_POSITION_STREAM = "vehicle_position";
+	static final String VEHICLE_POSITION_WITH_GEOHASH_STREAM = "vehicle_position_with_geohash";
+	static final String MATCHED_FENCE = "vehicle_position_matched_geo_fences";
+	static final String GEO_FENCES_KEYEDBY_GEOHASH = "geo_fences_keyedby_geohash";
+	static final String VEHICLE_STREAM = "vehicle";
 	
 	private static final String GEOFENCE_WKT_PATH = "geofences.txt";
 	private static final GeoFenceList GEOFENCES = new GeoFenceList(new ArrayList<>()); 
@@ -56,8 +53,7 @@ public class KafkaStreamsPositionMecomoApp {
 			while (readLine != null) {
 				String[] split = readLine.split(";");
 				GeoFenceItem geo = new GeoFenceItem();
-				geo.setShortName(split[0]);
-				geo.setLongName(split[1]);
+				geo.setName(split[0]);
 				geo.setWkt(split[2]);
 				geo.setTyp(split[3]);
 				GEOFENCES.getGeoFences().add(geo);
@@ -68,65 +64,13 @@ public class KafkaStreamsPositionMecomoApp {
 		}
 	}
 	
-	private static PositionMecomo createFrom(PositionMecomoRaw positionMecomoRaw, Integer bargeId) {
-		
-		CharSequence geohash = null;
-		Double etaDistanceToWalsumInKm = null;
-		Double etaMeanVelocityInKmh = null;
-		Double etaTimeToWalsumInMinutes = null;
-		Double etaTimeToWalsumMarginInMinutes = null;
-		CharSequence etaStatus = null;
-		Double etaCalculationSeconds = null;
-		Integer waterlevelStationDuisburgRuhrort = null;
-		
-		PositionMecomo positionMecomo = new PositionMecomo(
-													positionMecomoRaw.getPositionId(), 
-													positionMecomoRaw.getObjectId(), 
-													positionMecomoRaw.getDeviceId(), 
-													positionMecomoRaw.getEventTime(), 
-													positionMecomoRaw.getGpsFixTime(), 
-													positionMecomoRaw.getReceivedTime(), 
-													positionMecomoRaw.getLat(), 
-													positionMecomoRaw.getLon(), 
-													positionMecomoRaw.getSpeed(), 
-													positionMecomoRaw.getDirection(), 
-													positionMecomoRaw.getRadius(), 
-													positionMecomoRaw.getGpsQuality(), 
-													positionMecomoRaw.getSatCount(), 
-													positionMecomoRaw.getEventcode(), 
-													positionMecomoRaw.getEventcodeDescription(), 
-													positionMecomoRaw.getAltitude(), 
-													positionMecomoRaw.getOdometer(), 
-													positionMecomoRaw.getNetworkType(), 
-													positionMecomoRaw.getMobileCountryCode(), 
-													positionMecomoRaw.getMobileNetworkCode(), 
-													positionMecomoRaw.getBatteryLevel(), 
-													positionMecomoRaw.getMainBatteryVoltage(), 
-													positionMecomoRaw.getInput1(), 
-													positionMecomoRaw.getInput2(), 
-													positionMecomoRaw.getInput3(), 
-													positionMecomoRaw.getInput4(), 
-													positionMecomoRaw.getInput5(), 
-													positionMecomoRaw.getInput6(), 
-													positionMecomoRaw.getInput7(), 
-													positionMecomoRaw.getCurrentConfiguration(), 
-													positionMecomoRaw.getStandingDirection(),
-													bargeId,
-													geohash,
-													etaDistanceToWalsumInKm,
-													etaMeanVelocityInKmh,
-													etaTimeToWalsumInMinutes,
-													etaTimeToWalsumMarginInMinutes,
-													etaStatus,
-													etaCalculationSeconds,
-													waterlevelStationDuisburgRuhrort
-													);
-		return positionMecomo;
-	}
-	
-	private static PositionMecomo createFrom(PositionMecomo positionMecomo, String geohash) {
-		PositionMecomo newPositionMecomo = PositionMecomo.newBuilder(positionMecomo).setGeohash(geohash).build();
-		return newPositionMecomo;
+	private static VehiclePositionWithGeohash createFrom(VehiclePosition position, String geohash) {
+		VehiclePositionWithGeohash newPosition = VehiclePositionWithGeohash.newBuilder().setVehicleId(position.getVehicleId())
+												.setEventTime(position.getEventTime())
+												.setLatitude(position.getLatitude())
+												.setLongitude(position.getLongitude())
+												.setGeohash(geohash).build();
+		return newPosition;
 	}
 	
 	public static void main(final String[] args) {
@@ -228,29 +172,29 @@ public class KafkaStreamsPositionMecomoApp {
 		final StreamsBuilder builder = new StreamsBuilder();
 
 		// read the source stream (keyed by objectId)
-		final KStream<String, PositionMecomoRaw> positionsMecomoRaw = builder.stream(POSITION_MECOMO_RAW_STREAM);
+		final KStream<String, VehiclePosition> vehiclePosition = builder.stream(VEHICLE_POSITION_STREAM);
 		
 	
 		// read the barge and group it by objectIdMecomo
-		final KTable<String, Barge> barge = builder.table(BARGE_STREAM);
+		//final KTable<String, Vehicle> vehicle = builder.table(VEHICLE_STREAM);
 		
 		//barge.toStream().peek((k,v) -> System.out.println("barge.toStream().peek(...) : " + k + " : " + v));
 		//positionsMecomoRaw.peek((k,v) -> System.out.println("positionsMecomoRaw.peek(...) : " + k + " : " + v));
 		
 		// Left Join Positions Mecomo Raw with Barge to get the barge id
-		KStream<String, PositionMecomo> positionsMecomo  =  positionsMecomoRaw.leftJoin(barge, 
-				(leftValue, rightValue) -> createFrom(leftValue, (rightValue != null ? rightValue.getId() : -1) ),
-				Joined.<String, PositionMecomoRaw, Barge>keySerde(Serdes.String())
-				);
+		//KStream<String, VehiclePosition> positions  =  positionsMecomoRaw.leftJoin(vehicle, 
+		//		(leftValue, rightValue) -> createFrom(leftValue, (rightValue != null ? rightValue.getId() : -1) ),
+		//		Joined.<String, PositionMecomoRaw, Barge>keySerde(Serdes.String())
+		//		);
 
 		// enrich with GeoHash (the object in the lambda is immutable, always create a new instance => createFrom)
 		// TODO: extract constant for the GeoHash lenght
-		KStream<String, PositionMecomo> positionsMecomoWithGeoHash = positionsMecomo.mapValues(v -> createFrom(v, GeoHashUtil.geohash(v.getLat(), v.getLon(), 5) ));
+		KStream<String, VehiclePositionWithGeohash> vehiclePositionWithGeoHash = vehiclePosition.mapValues(v -> createFrom(v, GeoHashUtil.geohash(v.getLatitude(), v.getLongitude(), 5) ));
 		
 		//positionsMecomoWithGeoHash.peek((k,v) -> System.out.println("positionsMecomoWithGeoHash.peek(...) : " + k + " : " + v));
 		
 		// write Positions with Enrichments (geohash and bargeId, BUT NOT YET eta and direction) to Kafka topic
-		positionsMecomoWithGeoHash.selectKey((k, v) -> v.getBargeId().toString()).to(POSITION_MECOMO_STREAM);
+		vehiclePositionWithGeoHash.selectKey((k, v) -> v.getVehicleId().toString()).to(VEHICLE_POSITION_WITH_GEOHASH_STREAM);
 
 		/*-
 		// Read GeoFences keyed by GeoHash into KStream 
@@ -277,7 +221,7 @@ public class KafkaStreamsPositionMecomoApp {
 		
 		// partition positions by GeoHash so that they can be joined to the geofences KTable
 //		KStream<String, PositionMecomo> positionsMecomoWithGeoHashKeyedByGeoHash = positionsMecomoWithGeoHash.selectKey((id,pos) -> pos.getGeohash().toString());
-		KStream<String, PositionMecomo> positionsMecomoWithGeoHashKeyedByBargeId = positionsMecomoWithGeoHash.selectKey((id,pos) -> pos.getBargeId().toString());
+		KStream<String, VehiclePositionWithGeohash> positionsMecomoWithGeoHashKeyedByBargeId = vehiclePositionWithGeoHash.selectKey((id,pos) -> pos.getBargeId().toString());
 		
 		//positionsMecomoWithGeoHashKeyedByGeoHash.peek((k, v) -> System.out.println(k + ":" + v));
 		
