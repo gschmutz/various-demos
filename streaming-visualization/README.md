@@ -124,7 +124,7 @@ twitter.oauth.accessTokenSecret=XXXXXX
 First let's connect to the KSQL CLI
 
 ```
-docker run --rm -it --network analyticsplatform_default confluentinc/cp-ksql-cli:5.1.2 http://ksql-server-1:8088
+docker run --rm -it --network docker_default confluentinc/cp-ksql-cli:5.3.0 http://ksql-server-1:8088
 ```
 
 next we will create the following streams and tables
@@ -334,7 +334,7 @@ SELECT windowstart() windowStart, windowend() windowEnd, type, term, count(*) te
 ```
 
 ```
-SELECT TIMESTAMPTOSTRING(windowStart, 'yyyy-MM-dd HH:mm:ss.SSS'), TIMESTAMPTOSTRING(windowEnd, 'yyyy-MM-dd HH:mm:ss.SSS'), tweets_per_min, term FROM tweet_terms_per_min_t WHERE type = 'hashtag';
+SELECT TIMESTAMPTOSTRING(windowStart, 'yyyy-MM-dd HH:mm:ss.SSS'), TIMESTAMPTOSTRING(windowEnd, 'yyyy-MM-dd HH:mm:ss.SSS'), terms_per_min, term FROM tweet_terms_per_min_t WHERE type = 'hashtag';
 ```
 
 ### Terms per 1 hour
@@ -424,7 +424,7 @@ Navigate to <http://127.0.0.1:7999/arc/apps/login?next=/arc/apps/> and login as 
 ## Tipboard Dashboard
 
 ```
-docker run --rm -it --network analyticsplatform_default confluentinc/cp-ksql-cli:5.1.2 http://ksql-server-1:8088
+docker run --rm -it --network docker_default confluentinc/cp-ksql-cli:5.3.0 http://ksql-server-1:8088
 ```
 
 <http://allegro.tech/tipboard/>
@@ -434,7 +434,7 @@ docker run --rm -it --network analyticsplatform_default confluentinc/cp-ksql-cli
 DROP TABLE dash_hashtag_top10_5min_t;
 
 CREATE TABLE dash_hashtag_top10_5min_t WITH (VALUE_FORMAT = 'JSON')
-AS SELECT TIMESTAMPTOSTRING(windowstart(), 'yyyy-MM-dd HH:mm:ss.SSS'), type, term, count(*) nof from tweet_term_s window hopping (size 5 minutes, advance by 1 minute) where lang = 'en' and type = 'hashtag' group by type, term;
+AS SELECT TIMESTAMPTOSTRING(windowstart(), 'yyyy-MM-dd HH:mm:ss.SSS'), type, term, count(*) TOP_10 from tweet_term_s window hopping (size 5 minutes, advance by 1 minute) where lang = 'en' and type = 'hashtag' group by type, term;
 ```
 
 ```
@@ -479,11 +479,27 @@ curl -X POST http://localhost:80/api/v0.1/api-key-here/push -d "tile=listing" -d
 ## Slack
 
 ```
+docker run --rm -it --network docker_default confluentinc/cp-ksql-cli:5.3.0 http://ksql-server-1:8088
+```
+
+```
 DROP STREAM slack_notify_s;
 
 CREATE STREAM slack_notify_s WITH (KAFKA_TOPIC='slack-notify', VALUE_FORMAT='AVRO')
 AS SELECT id, text, user->screenname as user_screenname, createdat from tweet_raw_s
-where user->screenname = 'gschmutz' or user->screenname = 'VoxxedZurich';
+where user->screenname = 'gschmutz' or user->screenname = 'JavaZone';
+```
+
+```
+cd docker/kafka-connect
+
+mkdir kafka-connect-slack
+cd kafka-connect-slack
+```
+
+```
+wget https://www.dropbox.com/s/hmfmora6yvpz9sy/kafka-connect-slack-sink-0.1-SNAPSHOT.jar?dl=0
+mv kafka-connect-slack-sink-0.1-SNAPSHOT.jar\?dl\=0 kafka-connect-slack-sink-0.1-SNAPSHOT.jar
 ```
 
 # Demo
@@ -497,9 +513,12 @@ kafkacat -b analyticsplatform -t tweet-raw-v1 -o end -q
 ```
 kafkacat -b analyticsplatform -t slack-notify -o end -q
 ```
+```
+Testing once more my demo for today's talk on "Streaming Visualization" at JavaZone 2019: showing integration between #KafkaConnect and #Slack #kafka #javazone
+```
 
 ```
-Live Demo "Streaming Visualization": Now showing integration with #KafkaConnect and #Slack #bigdata2019 #vdz19
+Live Demo "Streaming Visualization": Now showing integration with #KafkaConnect and #Slack #bigdata2019 #javazone
 ```
 
 ## Tipboard
@@ -540,7 +559,16 @@ GROUP by type, term;
 
 
 ```
-Live Demo "Streaming Visualization": Now showing integration with #Kafka, #KSQL and #ArcadiaData #vdz19
+Live Demo "Streaming Visualization": Now showing integration with #Kafka, #KSQL and #ArcadiaData #javazone
 ```
 
+## REST API
 
+```
+curl -X POST -H 'Content-Type: application/vnd.ksql.v1+json'      -i http://analyticsplatform:18088/query --data '{
+  "ksql": "SELECT text FROM tweet_raw_s;",
+  "streamsProperties": {
+    "ksql.streams.auto.offset.reset": "latest"
+  }
+}'
+```

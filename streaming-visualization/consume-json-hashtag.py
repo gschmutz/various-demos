@@ -42,7 +42,7 @@ def main():
     TILE_KEY = 'top_hashtags'
 
     c = Consumer({
-       'bootstrap.servers': '192.168.73.86:9092',
+       'bootstrap.servers': 'streamingplatform:9092',
        'group.id': 'test-consumer-group',
        'default.topic.config': {
            'auto.offset.reset': 'largest'
@@ -64,8 +64,10 @@ def main():
              break
 
        data = json.loads(msg.value().decode('utf-8'))
-       data_selected = data.get('TOP_10')
-       # print (data_selected)
+       # print (data)
+       top10 = data.get('TOP_10')
+       term = data.get('TERM')
+       data_selected = [ term + ':' + str(top10) ]
        data_prepared = prepare_for_listing(data_selected)
        data_jsoned = json.dumps(data_prepared)
        data_to_push = {

@@ -32,7 +32,7 @@ def main():
     TILE_KEY = 'tweet'
 
     c = Consumer({
-       'bootstrap.servers': '192.168.73.86:9092',
+       'bootstrap.servers': 'streamingplatform:9092',
        'group.id': 'test-consumer-group',
        'default.topic.config': {
            'auto.offset.reset': 'largest'
