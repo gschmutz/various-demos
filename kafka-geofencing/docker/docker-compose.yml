@@ -107,7 +107,7 @@ services:
       - zookeeper-1
     command: "bash -c 'echo Waiting for Kafka to be ready... && \
                        cub kafka-ready -b broker-1:9092 1 120 && \
-                       kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic object_position && \
+                       kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic vehicle_position && \
                        kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic geo_fence && \
                        kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 1 --replication-factor 3 --topic geo_event
                  '"

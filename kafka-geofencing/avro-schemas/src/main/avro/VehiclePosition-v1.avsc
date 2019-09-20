@@ -1,10 +1,10 @@
 {
   "type": "record",
-  "name": "ObjectPosition",
+  "name": "VehiclePosition",
   "namespace": "com.trivadis.demo.avro.position.v1",
   "fields": [
     {
-      "name": "objectId",
+      "name": "vehicleId",
       "type": ["null", "int"]
     },
     {

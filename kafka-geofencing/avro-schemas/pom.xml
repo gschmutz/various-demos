@@ -116,7 +116,7 @@
 					<subjects>
 						<geo_event-value>src/main/avro/GeoEvent-v1.avsc</geo_event-value>
 						<geo_fence-value>src/main/avro/GeoFence-v1.avsc</geo_fence-value>
-						<object_position-value>src/main/avro/ObjectPosition-v1.avsc</object_position-value>
+						<vehicle_position-value>src/main/avro/VehiclePosition-v1.avsc</vehicle_position-value>
 					</subjects>
 				</configuration>
 				<goals>
