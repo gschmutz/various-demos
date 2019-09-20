@@ -221,17 +221,8 @@ docker run -it --network docker_default confluentinc/cp-ksql-cli:5.3.0 http://ks
 Create the stream with the vehicle positions
 
 ```
-DROP STREAM vehicle_position_s;
-CREATE STREAM vehicle_position_s 
-  (id VARCHAR, 
-   latitude DOUBLE, 
-   longitude DOUBLE) 
-  WITH (KAFKA_TOPIC='vehicle_position', 
-        VALUE_FORMAT='DELIMITED');
-```
+DROP STREAM IF EXISTS vehicle_position_s;
 
-```
-DROP IF EXISTS STREAM vehicle_position_s;
 CREATE STREAM vehicle_position_s
   WITH (kafka_topic='vehicle_position',
         value_format='AVRO');
@@ -242,10 +233,6 @@ DESCRIBE vehicle_position_s;
 ```
 
 ## GeoFence UDF
-
-```
-docker run -it --network docker_default confluentinc/cp-ksql-cli:5.2.1 http://ksql-server-1:8088
-```
 
 ```
 SELECT latitude, longitude, geo_fence(latitude, longitude, 'POLYGON ((13.297920227050781 52.56195151687443, 13.2440185546875 52.530216577830124, 13.267364501953125 52.45998421679598, 13.35113525390625 52.44826791583386, 13.405036926269531 52.44952338289473, 13.501167297363281 52.47148826410652, 13.509750366210938 52.489261333143126, 13.509063720703125 52.53710835019913, 13.481597900390625 52.554854904263195, 13.41156005859375 52.57217696877135, 13.37207794189453 52.5748894436198, 13.297920227050781 52.56195151687443))') geo_fence_status
@@ -267,21 +254,15 @@ echo '10:{"id":"10", "latitude":"52.4556", "longitude":"13.3178" }' | kafkacat -
 
 ## Implementing GeoFence Analytics in KSQL
 
-```
-docker run -it --network docker_default confluentinc/cp-ksql-cli:5.2.1 http://ksql-server-1:8088
-```
 
 ### Attempt 1: Perform a Cross-Join (does not work!)
 
 ```
-DROP TABLE geo_fence_t;
+DROP TABLE IF EXISTS geo_fence_t;
 
 CREATE TABLE geo_fence_t 
-      (id BIGINT,  
-      name VARCHAR,
-      geometry_wkt VARCHAR)
 WITH (KAFKA_TOPIC='geo_fence',
-      VALUE_FORMAT='JSON',
+      VALUE_FORMAT='AVRO',
       KEY = 'id');
 ```
 
@@ -301,7 +282,7 @@ CROSS JOIN geo_fence_t geof;
 
 ### Attempt 2: Perform an Inner-Join (does not work!)
 
-What if we try with an inner join in KSQL on an artifcal single group
+What if we try with an inner join in KSQL on an artifical single group
 
 ```
 SELECT vp.id, vp.latitude, vp.longitude,        gf.geometry_wkt
@@ -313,12 +294,14 @@ WHERE vp.group = gf.group;
 But both `geo_fence` and `vehicle_position` do not contain this `group` column. But we can use an enrichment KSQL SELECT to add the group 
 
 ```
+DROP STREAM IF EXISTS a02_geo_fence_s;
+
 CREATE STREAM a02_geo_fence_s 
       (id BIGINT, 
       name VARCHAR, 
       geometry_wkt VARCHAR)
 WITH (KAFKA_TOPIC='geo_fence', 
-      VALUE_FORMAT='JSON',
+      VALUE_FORMAT='AVRO',
       KEY = 'id');
 ```
 
@@ -326,9 +309,8 @@ WITH (KAFKA_TOPIC='geo_fence',
 docker exec -ti broker-1 kafka-topics --create --zookeeper zookeeper-1:2181 --topic a02_geo_fence --replication-factor 3 --partitions 8
 ```
 
-
 ```
-DROP TABLE a02_geo_fence_t;
+DROP TABLE IF EXISTS a02_geo_fence_t;
 
 CREATE TABLE a02_geo_fence_t 
       (group_id BIGINT,
@@ -336,7 +318,7 @@ CREATE TABLE a02_geo_fence_t
       name VARCHAR,
       geometry_wkt VARCHAR)
 WITH (KAFKA_TOPIC='a02_geo_fence',
-      VALUE_FORMAT='JSON',
+      VALUE_FORMAT='AVRO',
       KEY = 'group_id');
 ```
 
@@ -350,9 +332,9 @@ FROM a02_geo_fence_s geof;
 
 ```
 CREATE TABLE a02a_geo_fence_t
-WITH (PARTITIONS=8, KAFKA_TOPIC='a02a_geo_fence', VALUE_FORMAT='JSON')
+WITH (PARTITIONS=8, KAFKA_TOPIC='a02a_geo_fence', VALUE_FORMAT='AVRO')
 AS
-SELECT '1' AS group_id, geof.id, geof.name, geof.geometry_wkt
+SELECT max(1) AS group_id, geof.id, geof.name, geof.geometry_wkt
 FROM a02_geo_fence_s geof
 GROUP BY 1;
 ```
@@ -360,13 +342,10 @@ GROUP BY 1;
 ### Attempt 3: aggregate geofences by single group
 
 ```
-DROP STREAM a03_geo_fence_s;
+DROP STREAM IF EXISTS a03_geo_fence_s;
 CREATE STREAM a03_geo_fence_s 
-      (id VARCHAR,  
-       name VARCHAR,
-       geometry_wkt VARCHAR)
 WITH (KAFKA_TOPIC='geo_fence', 
-        VALUE_FORMAT='JSON',
+        VALUE_FORMAT='AVRO',
         KEY='id');
 ```
 
@@ -379,7 +358,7 @@ AS
 SELECT '1' AS group_id
 ,    id
 ,    name
-,    geometry_wkt
+,    wkt
 FROM a03_geo_fence_s  geof
 PARTITION BY group_id;
 ```
@@ -388,11 +367,11 @@ PARTITION BY group_id;
 DROP TABLE a03_geo_fence_aggby_group_t DELETE TOPIC;
 
 CREATE TABLE a03_geo_fence_aggby_group_t
-WITH (PARTITIONS=8, KAFKA_TOPIC='a03_geo_fence_aggby_group', VALUE_FORMAT='JSON')
+WITH (PARTITIONS=8, KAFKA_TOPIC='a03_geo_fence_aggby_group', VALUE_FORMAT='AVRO')
 AS
 SELECT group_id
 ,   collect_set(id)					id_list
-,   collect_set(id + ':' + geometry_wkt) AS id_geometry_wkt_list
+,   collect_set(CAST(id AS VARCHAR) + ':' + wkt) AS id_wkt_list
 FROM a03_geo_fence_by_group_s	  geof
 GROUP BY group_id;
 ```
@@ -422,7 +401,7 @@ DROP STREAM a03_vehicle_position_by_group_s DELETE TOPIC;
 CREATE STREAM a03_vehicle_position_by_group_s
 WITH (PARTITIONS=8, KAFKA_TOPIC='a03_vehicle_position_by_group', VALUE_FORMAT='AVRO')
 AS
-SELECT '1' group_id, vehp.id, vehp.latitude, vehp.longitude
+SELECT '1' group_id, vehp.vehicleId, vehp.latitude, vehp.longitude
 FROM vehicle_position_s vehp
 PARTITION BY group_id;
 ```
@@ -433,7 +412,7 @@ DROP STREAM a03_geo_fence_status_s DELETE TOPIC;
 CREATE STREAM a03_geo_fence_status_s
 WITH (PARTITIONS=8, KAFKA_TOPIC='vehp_join_geof_aggby_vehp', VALUE_FORMAT='AVRO')
 AS
-SELECT vehp.id, vehp.latitude, vehp.longitude, geo_fence_bulk(vehp.latitude, vehp.longitude, geofagg.id_geometry_wkt_list) geofence_status
+SELECT vehp.vehicleId, vehp.latitude, vehp.longitude, geo_fence_bulk(vehp.latitude, vehp.longitude, geofagg.id_wkt_list) geofence_status
 FROM a03_vehicle_position_by_group_s vehp
 LEFT JOIN a03_geo_fence_aggby_group_t geofagg
 ON vehp.group_id = geofagg.group_id;
@@ -448,11 +427,8 @@ Create a Stream on the `geo_fence`topic
 DROP STREAM a04_geo_fence_s;
 
 CREATE STREAM a04_geo_fence_s 
-  (id VARCHAR,
-   name VARCHAR,
-   geometry_wkt VARCHAR)
   WITH (kafka_topic='geo_fence', 
-        value_format='JSON',
+        value_format='AVRO',
         key='id');
 ```
 
@@ -462,34 +438,34 @@ Create a new stream `a04_geo_fence_by_geohash_s` which enriches the GeoFences wi
 DROP STREAM IF EXISTS a04_geo_fence_by_geohash_s DELETE TOPIC;
 
 CREATE STREAM a04_geo_fence_by_geohash_s
-WITH (PARTITIONS=8, kafka_topic='a04_geo_fence_by_geohash', value_format='JSON')
+WITH (PARTITIONS=8, kafka_topic='a04_geo_fence_by_geohash', value_format='AVRO')
 AS
-SELECT geo_hash(geometry_wkt, 3)[0] geo_hash, id, name, geometry_wkt
+SELECT geo_hash(wkt, 3)[0] geo_hash, id, name, wkt
 FROM a04_geo_fence_s
 PARTITION by geo_hash;
 ```
 
 ```
 INSERT INTO a04_geo_fence_by_geohash_s
-SELECT geo_hash(geometry_wkt, 3)[1] geo_hash, id, name, geometry_wkt
+SELECT geo_hash(wkt, 3)[1] geo_hash, id, name, wkt
 FROM a04_geo_fence_s
-WHERE geo_hash(geometry_wkt, 3)[1] IS NOT NULL
+WHERE geo_hash(wkt, 3)[1] IS NOT NULL
 PARTITION BY geo_hash;
 ```
 
 ```
 INSERT INTO a04_geo_fence_by_geohash_s
-SELECT geo_hash(geometry_wkt, 3)[2] geo_hash, id, name, geometry_wkt
+SELECT geo_hash(wkt, 3)[2] geo_hash, id, name, wkt
 FROM a04_geo_fence_s
-WHERE geo_hash(geometry_wkt, 3)[2] IS NOT NULL
+WHERE geo_hash(wkt, 3)[2] IS NOT NULL
 PARTITION BY geo_hash;
 ```
 
 ```
 INSERT INTO a04_geo_fence_by_geohash_s
-SELECT geo_hash(geometry_wkt, 3)[3] geo_hash, id, name, geometry_wkt
+SELECT geo_hash(wkt, 3)[3] geo_hash, id, name, wkt
 FROM a04_geo_fence_s
-WHERE geo_hash(geometry_wkt, 3)[3] IS NOT NULL
+WHERE geo_hash(wkt, 3)[3] IS NOT NULL
 PARTITION BY geo_hash;
 ```
 
@@ -500,9 +476,9 @@ Now we create a table which groups the geo-fences by geohash and creates a set w
 DROP TABLE IF EXISTS a04_geo_fence_by_geohash_t DELETE TOPIC;
 
 CREATE TABLE a04_geo_fence_by_geohash_t
-WITH (PARTITIONS=8, KAFKA_TOPIC='geo_fence_by_geohash_t', VALUE_FORMAT='JSON')
+WITH (PARTITIONS=8, KAFKA_TOPIC='geo_fence_by_geohash_t', VALUE_FORMAT='AVRO')
 AS
-SELECT geo_hash, COLLECT_SET(id + ':' + geometry_wkt) id_geometry_wkt_list, COLLECT_SET(geometry_wkt) geometry_wkt_list, COLLECT_SET(id) id_list
+SELECT geo_hash, COLLECT_SET(CAST (id AS VARCHAR) + ':' + wkt) id_wkt_list, COLLECT_SET(wkt) wkt_list, COLLECT_SET(id) id_list
 FROM a04_geo_fence_by_geohash_s
 GROUP BY geo_hash;
 ```
@@ -515,7 +491,7 @@ DROP STREAM IF EXISTS a04_vehicle_position_by_geohash_s DELETE TOPIC;
 CREATE STREAM a04_vehicle_position_by_geohash_s
 WITH (PARTITIONS=8, KAFKA_TOPIC='vehicle_position_by_geohash', value_format='AVRO')
 AS
-SELECT vp.id, vp.latitude, vp.longitude, geo_hash(vp.latitude, vp.longitude, 3) geo_hash
+SELECT vp.vehicleId, vp.latitude, vp.longitude, geo_hash(vp.latitude, vp.longitude, 3) geo_hash
 FROM vehicle_position_s vp
 PARTITION BY geo_hash;
 ```
@@ -528,8 +504,8 @@ DROP STREAM a04_geo_fence_status_s DELETE TOPIC;
 CREATE STREAM a04_geo_fence_status_s
 WITH (PARTITIONS=8, KAFKA_TOPIC='vehicle_position_by_geohash', value_format='AVRO')
 AS
-SELECT vp.id, vp.latitude, vp.longitude, vp.geo_hash, gf.geometry_wkt_list,
-geo_fence_bulk (vp.latitude, vp.longitude, gf.id_geometry_wkt_list) fence_status
+SELECT vp.vehicleId, vp.latitude, vp.longitude, vp.geo_hash, gf.wkt_list,
+geo_fence_bulk (vp.latitude, vp.longitude, gf.id_wkt_list) fence_status
 FROM a04_vehicle_position_by_geohash_s vp \
 LEFT JOIN a04_geo_fence_by_geohash_t gf \
 ON (vp.geo_hash = gf.geo_hash);
@@ -543,8 +519,8 @@ DROP STREAM a04b_geofence_udf_status_s DELETE TOPIC;
 CREATE STREAM a04a_geofence_udf_status_s
 WITH (PARTITIONS=8, KAFKA_TOPIC='04a_geofence_udf_status', value_format='AVRO')
 AS
-SELECT vp.id, vp.latitude, vp.longitude, vp.geo_hash, gf.geometry_wkt_list,
-geo_fence_bulk (vp.latitude, vp.longitude, gf.id_geometry_wkt_list, 'broker-1:9092,broker-2:9093') fence_status
+SELECT vp.vehicleId, vp.latitude, vp.longitude, vp.geo_hash, gf.wkt_list,
+geo_fence_bulk (vp.latitude, vp.longitude, gf.id_wkt_list, 'broker-1:9092,broker-2:9093') fence_status
 FROM a04_vehicle_position_by_geohash_s vp \
 LEFT JOIN a04_geo_fence_by_geohash_t gf \
 ON (vp.geo_hash = gf.geo_hash);
@@ -558,17 +534,24 @@ DROP STREAM a04b_geofence_udf_status_s DELETE TOPIC;
 CREATE STREAM a04b_geofence_udf_status_s
 WITH (PARTITIONS=8, KAFKA_TOPIC='04b_geofence_udf_status', value_format='AVRO')
 AS 
-SELECT id, latitude, longitude, id_list[0] geofence_id, geo_fence(latitude, longitude, geometry_wkt_list[0]) geofence_status
+SELECT vehicleId, latitude, longitude, id_list[0] geofence_id, geo_fence(latitude, longitude, wkt_list[0]) geofence_status
 FROM a04_vehicle_position_by_geohash_s vp \
 LEFT JOIN a04_geo_fence_by_geohash_t gf \
 ON (vp.geo_hash = gf.geo_hash);
 
 INSERT INTO a04b_geofence_udf_status_s
-SELECT id, latitude, longitude, id_list[1] geofence_id, geo_fence(latitude, longitude, geometry_wkt_list[1]) geofence_status
+SELECT vehicleId, latitude, longitude, id_list[1] geofence_id, geo_fence(latitude, longitude, wkt_list[1]) geofence_status
 FROM a04_vehicle_position_by_geohash_s vp \
 LEFT JOIN a04_geo_fence_by_geohash_t gf \
 ON (vp.geo_hash = gf.geo_hash)
 WHERE id_list[1] IS NOT NULL;
+
+INSERT INTO a04b_geofence_udf_status_s
+SELECT vehicleId, latitude, longitude, id_list[2] geofence_id, geo_fence(latitude, longitude, wkt_list[2]) geofence_status
+FROM a04_vehicle_position_by_geohash_s vp \
+LEFT JOIN a04_geo_fence_by_geohash_t gf \
+ON (vp.geo_hash = gf.geo_hash)
+WHERE id_list[2] IS NOT NULL;
 
 ```
 
