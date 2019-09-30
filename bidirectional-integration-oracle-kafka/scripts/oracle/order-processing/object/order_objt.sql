@@ -18,7 +18,8 @@
 CREATE TYPE order_item_objt AS OBJECT (
    id NUMBER,
    product_id NUMBER,
-   unit_price NUMBER(8,2)
+   product_name VARCHAR2(50),
+   unit_price NUMBER(8,2),
    quantity NUMBER(8)
 );
 /
@@ -31,7 +32,7 @@ CREATE TYPE order_objt AS OBJECT (
    order_date  DATE,
    order_mode  VARCHAR2(8),
    customer_id NUMBER(12),
-   order_status NUMBER(2),
+   order_status NUMBER,
    order_total NUMBER(8,2),
    promotion_id NUMBER(6),
    order_item_coll order_item_collt
