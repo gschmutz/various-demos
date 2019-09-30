@@ -40,13 +40,17 @@ IS
 		SELECT json_object('orderId' VALUE po.id,
 		          'orderDate' VALUE po.order_date,
 		          'orderMode' VALUE po.order_mode,
+		          'orderStatus' VALUE DECODE (po.order_status,2,'PROCESSING'),
+		          'totalPrice' VALUE po.order_total,
 		          'customer' VALUE
 		              json_object('firstName' VALUE cu.first_name,
-		                          'lastName' VALUE cu.last_name),
+		                          'lastName' VALUE cu.last_name,
+		                          'emailAddress' VALUE cu.email),
 		          'lineItems' VALUE (SELECT json_arrayagg(
 		              json_object('ItemNumber' VALUE li.id,
 		                     'Product' VALUE
 		                       json_object('productId' VALUE li.product_id,
+		                                   'productName' VALUE li.product_name,
 		                                   'unitPrice' VALUE li.unit_price),
 		                      'quantity' VALUE li.quantity))
 		                      FROM order_item_t li WHERE po.id = li.order_id),
@@ -87,10 +91,11 @@ BEGIN
 
 	FOR i IN 1 .. in_order_obj.order_item_coll.count()
 	LOOP
-		INSERT INTO order_item_t (id, order_id, product_id, unit_price, quantity)
+		INSERT INTO order_item_t (id, order_id, product_id, product_name, unit_price, quantity)
 		VALUES (in_order_obj.order_item_coll(i).id, 
 			    in_order_obj.id,
 				in_order_obj.order_item_coll(i).product_id, 
+				in_order_obj.order_item_coll(i).product_name,
 				in_order_obj.order_item_coll(i).unit_price, 
 				in_order_obj.order_item_coll(i).quantity);
 	END LOOP;
