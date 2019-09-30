@@ -20,7 +20,7 @@ CREATE TABLE customer_t (
    last_name  VARCHAR2(50)   	NOT NULL,
    title VARCHAR2(20),
    notification_on VARCHAR2(40),		
-   email VARCHAR2(20),
+   email VARCHAR2(50),
    slack_handle VARCHAR2(20),
    twitter_handle VARCHAR2(20),
    created_at TIMESTAMP(0)			NOT NULL,

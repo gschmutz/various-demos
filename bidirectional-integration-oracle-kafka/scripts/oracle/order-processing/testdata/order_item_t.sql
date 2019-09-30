@@ -14,8 +14,10 @@
 * limitations under the License.
 */
 
-INSERT INTO order_item_t (ID,ORDER_ID,PRODUCT_ID,UNIT_PRICE,QUANTITY) values (1, 2355, 2289,46, 200);
-INSERT INTO order_item_t (ID,ORDER_ID,PRODUCT_ID,UNIT_PRICE,QUANTITY) values (2, 2356, 2264,199.1, 38);
+INSERT INTO order_item_t (ID,ORDER_ID,PRODUCT_ID,PRODUCT_NAME,UNIT_PRICE,QUANTITY) 
+	values (1, 2355, 2289, 'Sportshoe Max', 146, 1);
+INSERT INTO order_item_t (ID,ORDER_ID,PRODUCT_ID,PRODUCT_NAME,UNIT_PRICE,QUANTITY) 
+	values (2, 2355, 2264, 'Sony Headphone', 299.1, 1);
 
 COMMIT;
 

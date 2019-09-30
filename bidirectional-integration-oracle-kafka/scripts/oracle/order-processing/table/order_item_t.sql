@@ -18,6 +18,7 @@ CREATE TABLE order_item_t (
    id       NUMBER(3)   CONSTRAINT pk_order_item PRIMARY KEY,
    order_id NUMBER(12)  NOT NULL CONSTRAINT fk_order REFERENCES order_t,
    product_id NUMBER(6) NOT NULL,
+   product_name VARCHAR2(50) NOT NULL,
    unit_price NUMBER(8,2) NOT NULL,
    quantity NUMBER(8) NOT NULL,
    created_at TIMESTAMP(0)	NOT NULL,
