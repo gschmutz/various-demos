@@ -94,6 +94,7 @@ PROMPT ======================================================================
 PROMPT insert test data to order_t and order_item_t
 PROMPT ======================================================================
 PROMPT
+@./testdata/customer_t.sql
 @./testdata/order_t.sql
 @./testdata/order_item_t.sql
 

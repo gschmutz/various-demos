@@ -1,0 +1,20 @@
+{
+  "id":"1",
+  "firstName":"Peter",
+  "lastName":"Muster",
+  "title":"Mr",
+  "notificationOn":"Email",
+  "email":"peter.muster@somecorp.com",
+  "slackHandle":"peterm",
+  "twitterHandle":"peterm",
+  "addresses": [
+  	{
+  		"id":1,
+  		"street":"Somestreet",
+  		"number":"10A",
+  		"city":"Somewhere",
+  		"postcode":"9999",
+  		"country":"Somecountry"
+  	}
+  ]
+}

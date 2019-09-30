@@ -238,7 +238,8 @@ services:
       - zookeeper-1
     command: "bash -c 'echo Waiting for Kafka to be ready... && \
                        cub kafka-ready -b broker-1:9092 1 240 && \
-                       kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic order-v1 && \
+                       kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic order#3-v1 && \
+                       kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic order#5-v1 && \
                        kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic order-item-v1 && \
                        kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic customer-v1 
                  '"
