@@ -16,9 +16,9 @@
 
 DECLARE
     order_id INTEGER := 6;
-	order_item_obj order_item_objt := order_item_objt((order_id * 10) + 1, 2289, 100, 1);
+	order_item_obj order_item_objt := order_item_objt((order_id * 10) + 1, 2289, 'AppleIPad', 800, 1);
 	order_item_coll order_item_collt := order_item_collt(order_item_obj);
-	order_obj order_objt := order_objt(order_id, SYSDATE, 'direct', 101, 1, 100, null, order_item_coll);
+	order_obj order_objt := order_objt(order_id, SYSDATE, 'direct', 101, 2, 800, null, order_item_coll);
 BEGIN
     order_pck.insert_order(order_obj);
     commit;
