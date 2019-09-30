@@ -32,9 +32,9 @@ IS
       l_message_props   sys.dbms_aq.message_properties_t;
       l_jms_message     sys.aq$_jms_text_message := sys.aq$_jms_text_message.construct;
       l_msgid           RAW(16);
-      
+
       order_json CLOB;
-      
+
 		CURSOR order_sel
 		IS
 		SELECT json_object('orderId' VALUE po.id,
@@ -46,20 +46,20 @@ IS
 		              json_object('firstName' VALUE cu.first_name,
 		                          'lastName' VALUE cu.last_name,
 		                          'emailAddress' VALUE cu.email),
-		          'lineItems' VALUE (SELECT json_arrayagg(
-		              json_object('ItemNumber' VALUE li.id,
+		          'items' VALUE (SELECT json_arrayagg(
+		              json_object('itemNumber' VALUE li.id,
 		                     'Product' VALUE
-		                       json_object('productId' VALUE li.product_id,
-		                                   'productName' VALUE li.product_name,
+		                       json_object('id' VALUE li.product_id,
+		                                   'name' VALUE li.product_name,
 		                                   'unitPrice' VALUE li.unit_price),
 		                      'quantity' VALUE li.quantity))
 		                      FROM order_item_t li WHERE po.id = li.order_id),
 		         'offset' VALUE TO_CHAR(po.modified_at, 'YYYYMMDDHH24MISS'))
 		FROM order_t po LEFT JOIN customer_t cu ON (po.customer_id = cu.id)
 		WHERE po.id = in_order_id;
-      
+
 BEGIN
-	   
+
       OPEN order_sel;
       FETCH order_sel INTO order_json;
 
@@ -99,7 +99,7 @@ BEGIN
 				in_order_obj.order_item_coll(i).unit_price, 
 				in_order_obj.order_item_coll(i).quantity);
 	END LOOP;
-    
+
     -- publish event to AQ
     send_aq_event(in_order_obj.id);
 END insert_order;
@@ -109,7 +109,7 @@ IS
 BEGIN
     UPDATE order_t SET order_status = in_new_status
     WHERE id = in_order_id;
-    
+
     -- publish event to AQ
     send_aq_event(in_order_id);
 END update_status;
