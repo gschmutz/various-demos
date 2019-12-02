@@ -131,7 +131,7 @@ services:
       - broker-1
       - schema-registry-1
     ports:
-      - "8083:8083"
+      - "28013:8083"
     environment:
       CONNECT_BOOTSTRAP_SERVERS: 'broker-1:9092'
       CONNECT_REST_ADVERTISED_HOST_NAME: connect-1
@@ -169,7 +169,7 @@ services:
       - broker-1
       - schema-registry-1
     ports:
-      - "8084:8084"
+      - "28014:8084"
     environment:
       CONNECT_BOOTSTRAP_SERVERS: 'broker-1:9092'
       CONNECT_REST_ADVERTISED_HOST_NAME: connect-2
@@ -259,7 +259,7 @@ services:
       - broker-1
       - schema-registry-1
     ports:
-      - "28002:8000"
+      - "28039:8000"
     environment:
       SCHEMAREGISTRY_URL: 'http://${PUBLIC_IP}:28030'
     restart: always
@@ -269,9 +269,9 @@ services:
     hostname: kafka-connect-ui
     container_name: kafka-connect-ui
     ports:
-      - "28001:8000"
+      - "28038:8000"
     environment:
-      CONNECT_URL: "http://${PUBLIC_IP}:8083/,http://${PUBLIC_IP}:8084/"
+      CONNECT_URL: "http://${PUBLIC_IP}:28013/,http://${PUBLIC_IP}:28014/"
       PROXY: "true"
     depends_on:
       - connect-1
@@ -287,17 +287,17 @@ services:
       - broker-2
       - broker-3
     ports:
-      - "29000:9000"
+      - "28044:9000"
     environment:
       ZK_HOSTS: 'zookeeper-1:2181'
-      APPLICATION_SECRET: 'letmein'
+      APPLICATION_SECRET: 'abc123!'
     restart: always
 
   kafkahq:
     image: tchiotludo/kafkahq
     container_name: kafkahq
     ports:
-      - '28082:8080'
+      - '28042:8080'
     environment:
       KAFKAHQ_CONFIGURATION: |
         kafkahq:
@@ -318,7 +318,7 @@ services:
     hostname: streamsets
     container_name: streamsets
     ports:
-      - "18630:18630"
+      - "28029:18630"
     restart: always
 
   #  Container UI ===============================================
@@ -332,5 +332,5 @@ services:
 #      - VIRTUAL_HOST=monitor.bioatlas.se
 #      - VIRTUAL_PORT=9000
     ports:
-      - 19000:9000   
+      - 28071:9000   
     restart: always
