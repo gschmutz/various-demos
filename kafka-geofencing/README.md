@@ -1,185 +1,37 @@
 # Kafka GeoFencing Demo
 This demo shows how to use GeoFencing with Kafka. 
 
-## Links
+## Important Links
 
   * <http://geojson.io/>
   * <http://geohash.gofreerange.com/>
   * <https://www.google.com/maps/d/u/0/>
 
-## Setup Static Data in PostgreSQL (not needed anymore)
+## Starting the environment
 
-The infrastructure we have started above also contains an instance of Postgresql in a separate docker container.
-
-Let's connect to that container
+Navigate to the `docker` folder and start the Docker Compose stack
 
 ```
-docker exec -ti postgresql psql -d sample -U sample
+docker-compose up -d
 ```
 
+The following topics will be created automatically during startup (check the `kafka-setup` service to see how it is done):
 
-### Vehicle Table
-
-```
-DROP TABLE vehicle;
-CREATE TABLE vehicle (id BIGINT
-            , name CHARACTER VARYING(45)
-            , last_update TIMESTAMP);
-ALTER TABLE vehicle ADD CONSTRAINT vehicle_pk PRIMARY KEY (id);
-```
-
-```
-INSERT INTO vehicle (id, name, last_update)
-VALUES (1, 'Vehicle-1', CURRENT_TIMESTAMP);
-
-INSERT INTO vehicle (id, name, last_update)
-VALUES (2, 'Vehicle-2', CURRENT_TIMESTAMP);
-
-INSERT INTO vehicle (id, name, last_update)
-VALUES (3, 'Vehicle-3', CURRENT_TIMESTAMP);
-
-INSERT INTO vehicle (id, name, last_update)
-VALUES (4, 'Vehicle-4', CURRENT_TIMESTAMP);
-
-INSERT INTO vehicle (id, name, last_update)
-VALUES (10, 'Vehicle-10', CURRENT_TIMESTAMP);
-```
-
-### Geo Fence Table
-
-```
-DROP TABLE geo_fence;
-CREATE TABLE geo_fence (id BIGINT
-            , name CHARACTER VARYING(45)
-            , geometry_wkt CHARACTER VARYING(2000)
-            , last_update TIMESTAMP);
-ALTER TABLE geo_fence ADD CONSTRAINT geo_fence_pk PRIMARY KEY (id);
-```
-
-```
-INSERT INTO geo_fence (id, name, geometry_wkt, last_update)
-VALUES (1, 'Colombia, Missouri', 'POLYGON ((-90.23345947265625 38.484769753492536, -90.25886535644531 38.47455675836861, -90.25886535644531 38.438530965643004, -90.23826599121092 38.40356337960024, -90.19088745117188 38.39818224865764, -90.16685485839844 38.435841752321856, -90.16891479492188 38.47616943274547, -90.23345947265625 38.484769753492536))', CURRENT_TIMESTAMP);
-
-INSERT INTO geo_fence (id, name, geometry_wkt, last_update)
-VALUES (2, 'St. Louis, Missouri', 'POLYGON ((-90.25749206542969 38.71551876930462, -90.31723022460938 38.69301319283493, -90.3247833251953 38.64744452237617, -90.31997680664062 38.58306291549108, -90.27053833007812 38.55460931253295, -90.22109985351562 38.54601733154524, -90.15037536621094 38.55299839430547, -90.11123657226562 38.566421609878674, -90.08583068847656 38.63028174397134, -90.08583068847656 38.66996443163297, -90.0933837890625 38.718197532760165, -90.15243530273436 38.720876195817276, -90.25749206542969 38.71551876930462))', CURRENT_TIMESTAMP);
-
-INSERT INTO geo_fence (id, name, geometry_wkt, last_update)
-VALUES (3, 'Berlin, Germany', 'POLYGON ((13.297920227050781 52.56195151687443, 13.2440185546875 52.530216577830124, 13.267364501953125 52.45998421679598, 13.35113525390625 52.44826791583386, 13.405036926269531 52.44952338289473, 13.501167297363281 52.47148826410652, 13.509750366210938 52.489261333143126, 13.509063720703125 52.53710835019913, 13.481597900390625 52.554854904263195, 13.41156005859375 52.57217696877135, 13.37207794189453 52.5748894436198, 13.297920227050781 52.56195151687443))', CURRENT_TIMESTAMP);
-```
-
-```
-docker exec -ti broker-1 kafka-topics --create --zookeeper zookeeper-1:2181 --topic geo_fence --replication-factor 3 --partitions 8
-```
-
-Enrichment of geo_fence by vehicle
-
-```
-ALTER TABLE geo_fence RENAME TO geo_fence_t;
-
-CREATE VIEW geo_fence
-AS
-SELECT veh.id      AS vehicle_id
-,   veh.name       AS vehicle_name
-,	geof.geometry_wkt
-,  GREATEST(geof.last_update, veh.last_update)    AS last_update
-FROM geo_fence_t geof
-CROSS JOIN vehicle veh;
-```
-
-## Using Kafka Connect to integrate with Kafka
-
-### Sync GeoFences
-
-To sync the `geo_fence` table from PostgreSQL into the Kafka Topic `geo_fence` use the following script
-
-```
-#!/bin/bash
-
-echo "removing JDBC Source Connector"
-
-curl -X "DELETE" "http://$DOCKER_HOST_IP:8083/connectors/geo_fence_source"
-
-echo "creating JDBC Source Connector"
-
-## Request
-curl -X "POST" "$DOCKER_HOST_IP:8083/connectors" \
-     -H "Content-Type: application/json" \
-     -d $'{
-  "name": "geo_fence_source",
-  "config": {
-    "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
-    "tasks.max": "1",
-    "connection.url":"jdbc:postgresql://postgresql/sample?user=sample&password=sample",
-    "mode": "timestamp",
-    "timestamp.column.name":"last_update",
-    "table.whitelist":"geo_fence",
-    "validate.non.null":"false",
-    "topic.prefix":"",
-    "key.converter":"org.apache.kafka.connect.storage.StringConverter",
-    "key.converter.schemas.enable": "false",
-    "value.converter":"org.apache.kafka.connect.json.JsonConverter",
-    "value.converter.schemas.enable": "false",
-    "name": "geo_fence_source",
-    "transforms":"createKey,extractInt",
-    "transforms.createKey.type":"org.apache.kafka.connect.transforms.ValueToKey",
-    "transforms.createKey.fields":"id",
-    "transforms.extractInt.type":"org.apache.kafka.connect.transforms.ExtractField$Key",
-    "transforms.extractInt.field":"id"
-  }
-}'
-```
-
-```
-docker exec -ti broker-1 kafka-topics --create --zookeeper zookeeper-1:2181 --topic geo_fence --replication-factor 3 --partitions 8
-```
+* vehicle_position
+* geo_fence
+* geo_fences_keyedby_geohash
+* geo_event
+* vehicle_position_matched_geo_fences
 
 
-### Sync Vehicles
+## Populating GeoFences
 
-To sync the `vehicle` table from PostgreSQL into the Kafka Topic `vehicle` use the following script
+GeoFences can be populated in two ways:
 
-```
-#!/bin/bash
+* Command Line using `kafakcat`
+* Python Script inside Apache Zeppelin
 
-echo "removing JDBC Source Connector"
-
-curl -X "DELETE" "http://$DOCKER_HOST_IP:8083/connectors/vehicle_source"
-
-echo "creating JDBC Source Connector"
-
-## Request
-curl -X "POST" "$DOCKER_HOST_IP:8083/connectors" \
-     -H "Content-Type: application/json" \
-     -d $'{
-  "name": "vehicle_source",
-  "config": {
-    "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
-    "tasks.max": "1",
-    "connection.url":"jdbc:postgresql://postgresql/sample?user=sample&password=sample",
-    "mode": "timestamp",
-    "timestamp.column.name":"last_update",
-    "table.whitelist":"vehicle",
-    "validate.non.null":"false",
-    "topic.prefix":"",
-    "key.converter":"org.apache.kafka.connect.storage.StringConverter",
-    "key.converter.schemas.enable": "false",
-    "value.converter":"org.apache.kafka.connect.json.JsonConverter",
-    "value.converter.schemas.enable": "false",
-    "name": "geo_fence_source",
-    "transforms":"createKey,extractInt",
-    "transforms.createKey.type":"org.apache.kafka.connect.transforms.ValueToKey",
-    "transforms.createKey.fields":"id",
-    "transforms.extractInt.type":"org.apache.kafka.connect.transforms.ExtractField$Key",
-    "transforms.extractInt.field":"id"
-  }
-}'
-```
-
-```
-docker exec -ti broker-1 kafka-topics --create --zookeeper zookeeper-1:2181 --topic vehicle --replication-factor 3 --partitions 8
-```
-
-## Create GeoFences (no longer needed, now in Zeppelin)
+### Create GeoFences using Command Line
 
 ```
 docker exec -ti broker-1 kafka-topics --create --zookeeper zookeeper-1:2181 --topic geo_fence --replication-factor 3 --partitions 8
@@ -197,22 +49,29 @@ echo '2:{"id":2,"name":"St. Louis, Missouri","wkt":"POLYGON ((-90.25749206542969
 echo '3:{"id":3,"name":"Berlin, Germany","wkt":"POLYGON ((13.297920227050781 52.56195151687443, 13.2440185546875 52.530216577830124, 13.267364501953125 52.45998421679598, 13.35113525390625 52.44826791583386, 13.405036926269531 52.44952338289473, 13.501167297363281 52.47148826410652, 13.509750366210938 52.489261333143126, 13.509063720703125 52.53710835019913, 13.481597900390625 52.554854904263195, 13.41156005859375 52.57217696877135, 13.37207794189453 52.5748894436198, 13.297920227050781 52.56195151687443))","last_update":1560669937877}' | kafkacat -b streamingplatform -t geo_fence -K:
 ```
 
-Delete the geofence with ID 3
+To delete a geofence, here the one with ID 3, produce a key with a `null` value:
 
 ```
 echo '3:' | kafkacat -b streamingplatform -t geo_fence -K:
 ```
 
+### Create GeoFences using Zeppelin
+
+Navigate to <http://analyticsplatform:28055>, import the `GeoFence Management.json` notebook from the `zeppelin` folder and run the notebook. 
+
+**Note:** make sure to set the default interpreter to `python` before running the notebook. 
+
+
 ## Simulating Vehicle Position
 
-in Zeppelin Notebook
+Navigate to <http://analyticsplatform:28055>, import the `Simulate Route.json` notebook from the `zeppelin` folder and run the notebook. 
 
-# KSQL
+## GeoFencing using ksqlDB
 
-Connect to KSQL Server
+First let's connect to ksqlDB Server
 
 ```
-docker run -it --network docker_default confluentinc/cp-ksql-cli:5.3.0 http://ksql-server-1:8088
+docker exec -it ksqldb-cli ksql http://ksqldb-server-1:8088
 ```
 
 ## Create the Vehicle Position KSQL Stream
@@ -232,23 +91,58 @@ CREATE STREAM vehicle_position_s
 DESCRIBE vehicle_position_s;
 ```
 
-## GeoFence UDF
+```
+SELECT * FROM vehicle_position_s;
+```
 
 ```
-SELECT latitude, longitude, geo_fence(latitude, longitude, 'POLYGON ((13.297920227050781 52.56195151687443, 13.2440185546875 52.530216577830124, 13.267364501953125 52.45998421679598, 13.35113525390625 52.44826791583386, 13.405036926269531 52.44952338289473, 13.501167297363281 52.47148826410652, 13.509750366210938 52.489261333143126, 13.509063720703125 52.53710835019913, 13.481597900390625 52.554854904263195, 13.41156005859375 52.57217696877135, 13.37207794189453 52.5748894436198, 13.297920227050781 52.56195151687443))') geo_fence_status
-FROM test_geo_udf_s;
+INSERT INTO vehicle_position_s (vehicleId, latitude, longitude) VALUES (10, 52.4497, 13.3096);
+INSERT INTO vehicle_position_s (vehicleId, latitude, longitude) VALUES (10, 52.4556, 13.3178);
+```
+
+## GeoFence UDF
+
+The geo UDFs are implemented here: 
+
+```
+CREATE STREAM test_udf_s (id INT, latitude DOUBLE, longitude DOUBLE)
+WITH (kafka_topic='test_udf',
+        value_format='JSON', partitions=8); 
+```
+
+```
+DESCRIBE FUNCTION geo_fence;
+```
+
+```
+SELECT latitude, 
+		longitude, 
+		geo_fence(latitude, longitude, 'POLYGON ((13.297920227050781 52.56195151687443, 13.2440185546875 52.530216577830124, 13.267364501953125 52.45998421679598, 13.35113525390625 52.44826791583386, 13.405036926269531 52.44952338289473, 13.501167297363281 52.47148826410652, 13.509750366210938 52.489261333143126, 13.509063720703125 52.53710835019913, 13.481597900390625 52.554854904263195, 13.41156005859375 52.57217696877135, 13.37207794189453 52.5748894436198, 13.297920227050781 52.56195151687443))') geo_fence_status
+FROM test_udf_s;
+```
+
+Test with a coordinate which is OUTSIDE the geofence
+
+```
+INSERT INTO test_udf_s (id, latitude, longitude) VALUES (10, 52.4497, 13.3096);
+```
+
+Test with a coordinate which is INSIDE the geofence
+
+```
+INSERT INTO test_udf_s (id, latitude, longitude) VALUES (10, 52.4556, 13.3178);
 ```
 
 Test with a LatLong which is OUTSIDE of the geo fence
 
 ```
-echo '10:{"id":"10", "latitude":"52.4497", "longitude":"13.3096" }' | kafkacat -b streamingplatform -t test_geo_udf -K:
+echo '10:{"id":"10", "latitude":"52.4497", "longitude":"13.3096" }' | kafkacat -b analyticsplatform -t test_udf -K:
 ```
 
 Test with a LatLong which is INSIDE of the geo fence
 
 ```
-echo '10:{"id":"10", "latitude":"52.4556", "longitude":"13.3178" }' | kafkacat -b streamingplatform -t test_geo_udf -K:
+echo '10:{"id":"10", "latitude":"52.4556", "longitude":"13.3178" }' | kafkacat -b analyticsplatform -t test_udf -K:
 ```
 
 
@@ -259,7 +153,9 @@ echo '10:{"id":"10", "latitude":"52.4556", "longitude":"13.3178" }' | kafkacat -
 
 ```
 DROP TABLE IF EXISTS geo_fence_t;
+```
 
+```
 CREATE TABLE geo_fence_t 
 WITH (KAFKA_TOPIC='geo_fence',
       VALUE_FORMAT='AVRO',
@@ -343,6 +239,7 @@ GROUP BY 1;
 
 ```
 DROP STREAM IF EXISTS a03_geo_fence_s;
+
 CREATE STREAM a03_geo_fence_s 
 WITH (KAFKA_TOPIC='geo_fence', 
         VALUE_FORMAT='AVRO',
@@ -418,6 +315,10 @@ LEFT JOIN a03_geo_fence_aggby_group_t geofagg
 ON vehp.group_id = geofagg.group_id;
 ```
 
+```
+INSERT INTO vehicle_position_s (vehicleId, latitude, longitude) VALUES (10, 52.4497, 13.3096);
+INSERT INTO vehicle_position_s (vehicleId, latitude, longitude) VALUES (10, 52.4556, 13.3178);
+```
 
 ### Attempt 4: aggregate by geohash
 
@@ -943,3 +844,175 @@ LEFT JOIN demo_geo_fence_by_geohash_t gf \
 ON (vp.geo_hash = gf.geo_hash);
 ```
 
+-----
+
+## Setup Static Data in PostgreSQL (no longer necessary anymore)
+
+The infrastructure we have started above also contains an instance of Postgresql in a separate docker container.
+
+Let's connect to that container
+
+```
+docker exec -ti postgresql psql -d sample -U sample
+```
+
+
+### Vehicle Table
+
+```
+DROP TABLE vehicle;
+CREATE TABLE vehicle (id BIGINT
+            , name CHARACTER VARYING(45)
+            , last_update TIMESTAMP);
+ALTER TABLE vehicle ADD CONSTRAINT vehicle_pk PRIMARY KEY (id);
+```
+
+```
+INSERT INTO vehicle (id, name, last_update)
+VALUES (1, 'Vehicle-1', CURRENT_TIMESTAMP);
+
+INSERT INTO vehicle (id, name, last_update)
+VALUES (2, 'Vehicle-2', CURRENT_TIMESTAMP);
+
+INSERT INTO vehicle (id, name, last_update)
+VALUES (3, 'Vehicle-3', CURRENT_TIMESTAMP);
+
+INSERT INTO vehicle (id, name, last_update)
+VALUES (4, 'Vehicle-4', CURRENT_TIMESTAMP);
+
+INSERT INTO vehicle (id, name, last_update)
+VALUES (10, 'Vehicle-10', CURRENT_TIMESTAMP);
+```
+
+### Geo Fence Table
+
+```
+DROP TABLE geo_fence;
+CREATE TABLE geo_fence (id BIGINT
+            , name CHARACTER VARYING(45)
+            , geometry_wkt CHARACTER VARYING(2000)
+            , last_update TIMESTAMP);
+ALTER TABLE geo_fence ADD CONSTRAINT geo_fence_pk PRIMARY KEY (id);
+```
+
+```
+INSERT INTO geo_fence (id, name, geometry_wkt, last_update)
+VALUES (1, 'Colombia, Missouri', 'POLYGON ((-90.23345947265625 38.484769753492536, -90.25886535644531 38.47455675836861, -90.25886535644531 38.438530965643004, -90.23826599121092 38.40356337960024, -90.19088745117188 38.39818224865764, -90.16685485839844 38.435841752321856, -90.16891479492188 38.47616943274547, -90.23345947265625 38.484769753492536))', CURRENT_TIMESTAMP);
+
+INSERT INTO geo_fence (id, name, geometry_wkt, last_update)
+VALUES (2, 'St. Louis, Missouri', 'POLYGON ((-90.25749206542969 38.71551876930462, -90.31723022460938 38.69301319283493, -90.3247833251953 38.64744452237617, -90.31997680664062 38.58306291549108, -90.27053833007812 38.55460931253295, -90.22109985351562 38.54601733154524, -90.15037536621094 38.55299839430547, -90.11123657226562 38.566421609878674, -90.08583068847656 38.63028174397134, -90.08583068847656 38.66996443163297, -90.0933837890625 38.718197532760165, -90.15243530273436 38.720876195817276, -90.25749206542969 38.71551876930462))', CURRENT_TIMESTAMP);
+
+INSERT INTO geo_fence (id, name, geometry_wkt, last_update)
+VALUES (3, 'Berlin, Germany', 'POLYGON ((13.297920227050781 52.56195151687443, 13.2440185546875 52.530216577830124, 13.267364501953125 52.45998421679598, 13.35113525390625 52.44826791583386, 13.405036926269531 52.44952338289473, 13.501167297363281 52.47148826410652, 13.509750366210938 52.489261333143126, 13.509063720703125 52.53710835019913, 13.481597900390625 52.554854904263195, 13.41156005859375 52.57217696877135, 13.37207794189453 52.5748894436198, 13.297920227050781 52.56195151687443))', CURRENT_TIMESTAMP);
+```
+
+```
+docker exec -ti broker-1 kafka-topics --create --zookeeper zookeeper-1:2181 --topic geo_fence --replication-factor 3 --partitions 8
+```
+
+Enrichment of geo_fence by vehicle
+
+```
+ALTER TABLE geo_fence RENAME TO geo_fence_t;
+
+CREATE VIEW geo_fence
+AS
+SELECT veh.id      AS vehicle_id
+,   veh.name       AS vehicle_name
+,	geof.geometry_wkt
+,  GREATEST(geof.last_update, veh.last_update)    AS last_update
+FROM geo_fence_t geof
+CROSS JOIN vehicle veh;
+```
+## Using Kafka Connect to integrate with Kafka
+
+### Sync GeoFences
+
+To sync the `geo_fence` table from PostgreSQL into the Kafka Topic `geo_fence` use the following script
+
+```
+#!/bin/bash
+
+echo "removing JDBC Source Connector"
+
+curl -X "DELETE" "http://$DOCKER_HOST_IP:8083/connectors/geo_fence_source"
+
+echo "creating JDBC Source Connector"
+
+## Request
+curl -X "POST" "$DOCKER_HOST_IP:8083/connectors" \
+     -H "Content-Type: application/json" \
+     -d $'{
+  "name": "geo_fence_source",
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+    "tasks.max": "1",
+    "connection.url":"jdbc:postgresql://postgresql/sample?user=sample&password=sample",
+    "mode": "timestamp",
+    "timestamp.column.name":"last_update",
+    "table.whitelist":"geo_fence",
+    "validate.non.null":"false",
+    "topic.prefix":"",
+    "key.converter":"org.apache.kafka.connect.storage.StringConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter":"org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+    "name": "geo_fence_source",
+    "transforms":"createKey,extractInt",
+    "transforms.createKey.type":"org.apache.kafka.connect.transforms.ValueToKey",
+    "transforms.createKey.fields":"id",
+    "transforms.extractInt.type":"org.apache.kafka.connect.transforms.ExtractField$Key",
+    "transforms.extractInt.field":"id"
+  }
+}'
+```
+
+```
+docker exec -ti broker-1 kafka-topics --create --zookeeper zookeeper-1:2181 --topic geo_fence --replication-factor 3 --partitions 8
+```
+
+
+### Sync Vehicles
+
+To sync the `vehicle` table from PostgreSQL into the Kafka Topic `vehicle` use the following script
+
+```
+#!/bin/bash
+
+echo "removing JDBC Source Connector"
+
+curl -X "DELETE" "http://$DOCKER_HOST_IP:8083/connectors/vehicle_source"
+
+echo "creating JDBC Source Connector"
+
+## Request
+curl -X "POST" "$DOCKER_HOST_IP:8083/connectors" \
+     -H "Content-Type: application/json" \
+     -d $'{
+  "name": "vehicle_source",
+  "config": {
+    "connector.class": "io.confluent.connect.jdbc.JdbcSourceConnector",
+    "tasks.max": "1",
+    "connection.url":"jdbc:postgresql://postgresql/sample?user=sample&password=sample",
+    "mode": "timestamp",
+    "timestamp.column.name":"last_update",
+    "table.whitelist":"vehicle",
+    "validate.non.null":"false",
+    "topic.prefix":"",
+    "key.converter":"org.apache.kafka.connect.storage.StringConverter",
+    "key.converter.schemas.enable": "false",
+    "value.converter":"org.apache.kafka.connect.json.JsonConverter",
+    "value.converter.schemas.enable": "false",
+    "name": "geo_fence_source",
+    "transforms":"createKey,extractInt",
+    "transforms.createKey.type":"org.apache.kafka.connect.transforms.ValueToKey",
+    "transforms.createKey.fields":"id",
+    "transforms.extractInt.type":"org.apache.kafka.connect.transforms.ExtractField$Key",
+    "transforms.extractInt.field":"id"
+  }
+}'
+```
+
+```
+docker exec -ti broker-1 kafka-topics --create --zookeeper zookeeper-1:2181 --topic vehicle --replication-factor 3 --partitions 8
+```
