@@ -1,9 +1,39 @@
 version: '2'
 services:
+  zookeeper-1:
+    image: confluentinc/cp-zookeeper:5.3.1
+    hostname: zookeeper-1
+    container_name: zookeeper-1
+    ports:
+      - "12181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+    restart: always
+
+  broker-1:
+    image: confluentinc/cp-kafka:5.3.1
+    hostname: broker-1
+    container_name: broker-1
+    depends_on:
+      - zookeeper-1
+    ports:
+      - "19092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_BROKER_RACK: 'r1'
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper-1:2181'
+      KAFKA_ADVERTISED_LISTENERS: 'PLAINTEXT://${PUBLIC_IP}:9092'
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_DELETE_TOPIC_ENABLE: 'true'
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_JMX_PORT: 9994
+    restart: always
 
   schema-registry-4:
     image: confluentinc/cp-schema-registry:5.3.1
-    hostname: schema-registr-4
+    hostname: schema-registry-4
     container_name: schema-registry-4   
     ports:
       - "28033:8081"
