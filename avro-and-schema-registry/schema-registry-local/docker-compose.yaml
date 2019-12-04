@@ -6,7 +6,7 @@ services:
     hostname: schema-registr-4
     container_name: schema-registry-4   
     ports:
-      - "28032:8081"
+      - "28033:8081"
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry-4
       SCHEMA_REGISTRY_MASTER_ELIGIBILITY: 'true'
