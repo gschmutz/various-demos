@@ -5,9 +5,6 @@ services:
     image: confluentinc/cp-schema-registry:5.3.1
     hostname: schema-registr-4
     container_name: schema-registry-4   
-    depends_on:
-      - zookeeper-1
-      - broker-1
     ports:
       - "28032:8081"
     environment:
