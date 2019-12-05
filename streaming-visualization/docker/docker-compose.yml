@@ -232,7 +232,7 @@ services:
     container_name: schema-registry-ui
     depends_on:
       - broker-1
-      - schema-registry
+      - schema-registry-1
     ports:
       - "28002:8000"
     environment:
@@ -280,7 +280,7 @@ services:
               properties:
                 bootstrap.servers: "broker-1:9092,broker-2:9093"
               schema-registry:
-                url: "http://schema-registry:8081"
+                url: "http://schema-registry-1:8081"
               connect:
                 url: "http://connect-1:8083"
     depends_on:
