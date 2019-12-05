@@ -77,17 +77,17 @@ services:
       KAFKA_JMX_HOSTNAME: 'broker-3'
     restart: always
       
-  schema-registry:
+  schema-registry-1:
     image: confluentinc/cp-schema-registry:5.3.0
-    hostname: schema-registry
-    container_name: schema-registry
+    hostname: schema-registry-1
+    container_name: schema-registry-1
     depends_on:
       - zookeeper-1
       - broker-1
     ports:
       - "18081:8081"
     environment:
-      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry-1
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper-1:2181'
       SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_ORIGIN: '*'
       SCHEMA_REGISTRY_ACCESS_CONTROL_ALLOW_METHODS: 'GET,POST,PUT,OPTIONS'
@@ -100,7 +100,7 @@ services:
     depends_on:
       - zookeeper-1
       - broker-1
-      - schema-registry
+      - schema-registry-1
     ports:
       - "8083:8083"
     environment:
@@ -116,9 +116,9 @@ services:
       CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 3
       CONNECT_KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
-      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry-1:8081'
       CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
-      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry-1:8081'
       CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_ZOOKEEPER_CONNECT: 'zookeeper-1:2181'
@@ -137,7 +137,7 @@ services:
     depends_on:
       - zookeeper-1
       - broker-1
-      - schema-registry
+      - schema-registry-1
     ports:
       - "8084:8084"
     environment:
@@ -153,9 +153,9 @@ services:
       CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
       CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 3
       CONNECT_KEY_CONVERTER: io.confluent.connect.avro.AvroConverter
-      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+      CONNECT_KEY_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry-1:8081'
       CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
-      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry:8081'
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: 'http://schema-registry-1:8081'
       CONNECT_INTERNAL_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_INTERNAL_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
       CONNECT_ZOOKEEPER_CONNECT: 'zookeeper-1:2181'
@@ -168,61 +168,57 @@ services:
       - $PWD/kafka-connect:/etc/kafka-connect/custom-plugins
     restart: always
 
-
-  ksql-server-1:
-    image: confluentinc/cp-ksql-server:5.3.0
-    container_name: ksql-server-1
+  ksqldb-server-1:
+#    image: confluentinc/ksqldb-server:0.6.0
+    image: confluentinc/cp-ksql-server:5.3.1
+    hostname: ksqldb-server-1
+    container_name: ksqldb-server-1
     ports:
-      - '18088:8088'
+      - "28031:8088"
     depends_on:
       - broker-1
-      - schema-registry
+      - schema-registry-1
     environment:
-      KSQL_CONFIG_DIR: "/etc/ksql"
-      KSQL_KSQL_EXTENSION_DIR: "/etc/ksql/ext"
+      KSQL_CONFIG_DIR: "/etc/ksql-server"
+      KSQL_KSQL_EXTENSION_DIR: "/etc/ksql-server/ext"
       KSQL_LOG4J_OPTS: "-Dlog4j.configuration=file:/etc/ksql/log4j-rolling.properties"
       KSQL_BOOTSTRAP_SERVERS: "broker-1:9092,broker-2:9093"
-      KSQL_HOST_NAME: ksql-server-1
+      KSQL_HOST_NAME: ksqldb-server-1
       KSQL_APPLICATION_ID: "kafka-demo"
-      KSQL_LISTENERS: "http://0.0.0.0:8088"
-      KSQL_CACHE_MAX_BYTES_BUFFERING: 0
-      # Schema Registry using HTTPS
-      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      KSQL_LISTENERS: http://0.0.0.0:8088
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry-1:8081"
+      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
+      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
       KSQL_KSQL_SERVICE_ID: "kafka-demo"
-      KSQL_PRODUCER_INTERCEPTOR_CLASSES: io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor
-      KSQL_CONSUMER_INTERCEPTOR_CLASSES: io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor
-      KSQL_KSQL_SERVER_UI_ENABLED: "false"
     volumes:
-      - $PWD/ksql:/etc/ksql/ext      
+      - $PWD/ksql:/etc/ksql-server/ext      
     restart: always
 
-  ksql-server-2:
-    image: confluentinc/cp-ksql-server:5.3.0
-    container_name: ksql-server-2
+  ksqldb-server-2:
+#    image: confluentinc/ksqldb-server:0.6.0
+    image: confluentinc/cp-ksql-server:5.3.1
+    hostname: ksqldb-server-2
+    container_name: ksqldb-server-2
     ports:
-      - '18089:8088'
+      - "28032:8088"
     depends_on:
       - broker-1
-      - schema-registry
+      - schema-registry-1
     environment:
-      KSQL_CONFIG_DIR: "/etc/ksql"
-      KSQL_KSQL_EXTENSION_DIR: "/etc/ksql/ext"
+      KSQL_CONFIG_DIR: "/etc/ksql-server"
+      KSQL_KSQL_EXTENSION_DIR: "/etc/ksql-server/ext"
       KSQL_LOG4J_OPTS: "-Dlog4j.configuration=file:/etc/ksql/log4j-rolling.properties"
       KSQL_BOOTSTRAP_SERVERS: "broker-1:9092,broker-2:9093"
-      KSQL_HOST_NAME: ksql-server-2
+      KSQL_HOST_NAME: ksqldb-server-2
       KSQL_APPLICATION_ID: "kafka-demo"
-      KSQL_LISTENERS: "http://0.0.0.0:8088"
-      KSQL_CACHE_MAX_BYTES_BUFFERING: 0
-      # Schema Registry using HTTPS
-      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry:8081"
+      KSQL_LISTENERS: http://0.0.0.0:8088
+      KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry-1:8081"
+      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
+      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
       KSQL_KSQL_SERVICE_ID: "kafka-demo"
-      KSQL_PRODUCER_INTERCEPTOR_CLASSES: io.confluent.monitoring.clients.interceptor.MonitoringProducerInterceptor
-      KSQL_CONSUMER_INTERCEPTOR_CLASSES: io.confluent.monitoring.clients.interceptor.MonitoringConsumerInterceptor
-      KSQL_KSQL_SERVER_UI_ENABLED: "false"
     volumes:
-      - $PWD/ksql:/etc/ksql/ext      
+      - $PWD/ksql:/etc/ksql-server/ext      
     restart: always
-
 
   streamsets:
     image: trivadisbds/streamsets-kafka-hadoop-aws
