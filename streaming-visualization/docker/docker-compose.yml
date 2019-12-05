@@ -255,7 +255,7 @@ services:
     ports:
       - "28038:8000"
     environment:
-      CONNECT_URL: "http://${PUBLIC_IP}:8083/,http://${PUBLIC_IP}:28014/"
+      CONNECT_URL: "http://${PUBLIC_IP}:28013/,http://${PUBLIC_IP}:28014/"
       PROXY: "true"
     depends_on:
       - connect-1
