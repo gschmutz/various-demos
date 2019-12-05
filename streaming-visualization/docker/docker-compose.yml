@@ -85,7 +85,7 @@ services:
       - zookeeper-1
       - broker-1
     ports:
-      - "18081:8081"
+      - "28030:8081"
     environment:
       SCHEMA_REGISTRY_HOST_NAME: schema-registry-1
       SCHEMA_REGISTRY_KAFKASTORE_CONNECTION_URL: 'zookeeper-1:2181'
@@ -102,7 +102,7 @@ services:
       - broker-1
       - schema-registry-1
     ports:
-      - "8083:8083"
+      - "28013:8083"
     environment:
       CONNECT_BOOTSTRAP_SERVERS: 'broker-1:9092'
       CONNECT_REST_ADVERTISED_HOST_NAME: connect-1
@@ -139,7 +139,7 @@ services:
       - broker-1
       - schema-registry-1
     ports:
-      - "8084:8084"
+      - "28014:8084"
     environment:
       CONNECT_BOOTSTRAP_SERVERS: 'broker-1:9092'
       CONNECT_REST_ADVERTISED_HOST_NAME: connect-2
@@ -220,11 +220,21 @@ services:
       - $PWD/ksql:/etc/ksql-server/ext      
     restart: always
 
+  ksqldb-cli:
+    image: confluentinc/ksqldb-cli:0.6.0
+#    image: confluentinc/cp-ksql-cli:5.3.1
+    container_name: ksqldb-cli
+    depends_on:
+      - ksqldb-server-1
+      - ksqldb-server-2
+    entrypoint: /bin/sh
+    tty: true
+
   streamsets:
     image: trivadisbds/streamsets-kafka-hadoop-aws
     container_name: streamsets
     ports:
-      - "18630:18630"
+      - "28029:18630"
     restart: always
 
   schema-registry-ui:
@@ -234,18 +244,18 @@ services:
       - broker-1
       - schema-registry-1
     ports:
-      - "28002:8000"
+      - "28039:8000"
     environment:
-      SCHEMAREGISTRY_URL: 'http://${PUBLIC_IP}:18081'
+      SCHEMAREGISTRY_URL: 'http://${PUBLIC_IP}:28030'
     restart: always
 
   kafka-connect-ui:
     image: landoop/kafka-connect-ui:0.9.7
     container_name: kafka-connect-ui
     ports:
-      - "28001:8000"
+      - "28038:8000"
     environment:
-      CONNECT_URL: "http://${PUBLIC_IP}:8083/,http://${PUBLIC_IP}:8084/"
+      CONNECT_URL: "http://${PUBLIC_IP}:8083/,http://${PUBLIC_IP}:28014/"
       PROXY: "true"
     depends_on:
       - connect-1
@@ -261,7 +271,7 @@ services:
       - broker-2
       - broker-3
     ports:
-      - "29000:9000"
+      - "28044:9000"
     environment:
       ZK_HOSTS: 'zookeeper-1:2181'
       APPLICATION_SECRET: 'letmein'
@@ -271,7 +281,7 @@ services:
     image: tchiotludo/kafkahq
     container_name: kafkahq
     ports:
-      - 28082:8080
+      - 28042:8080
     environment:
       KAFKAHQ_CONFIGURATION: |
         kafkahq:
