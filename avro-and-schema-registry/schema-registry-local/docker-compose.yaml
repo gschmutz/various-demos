@@ -54,14 +54,12 @@ services:
     hostname: kafka-setup
     container_name: kafka-setup
     depends_on:
-      - broker-1
-      - broker-2
-      - broker-3
-      - zookeeper-1
+      - broker-1a
+      - zookeeper-1a
     command: "bash -c 'echo Waiting for Kafka to be ready... && \
-                       cub kafka-ready -b broker-1:9092 1 120 && \
-                       kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic person-v1 && \
-                       kafka-topics --create --if-not-exists --zookeeper zookeeper-1:2181 --partitions 8 --replication-factor 3 --topic person-v2
+                       cub kafka-ready -b broker-1a:9092 1 120 && \
+                       kafka-topics --create --if-not-exists --zookeeper zookeeper-1a:2181 --partitions 8 --replication-factor 3 --topic person-v1 && \
+                       kafka-topics --create --if-not-exists --zookeeper zookeeper-1a:2181 --partitions 8 --replication-factor 3 --topic person-v2
                  '"
     environment:
       # The following settings are listed here only to satisfy the image's requirements.
