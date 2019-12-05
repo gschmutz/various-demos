@@ -51,8 +51,8 @@ services:
 
   kafka-setup-1:
     image: confluentinc/cp-kafka:5.3.1
-    hostname: kafka-setup
-    container_name: kafka-setup
+    hostname: kafka-setup-1
+    container_name: kafka-setup-1
     depends_on:
       - broker-1a
       - zookeeper-1a
