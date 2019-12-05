@@ -2,7 +2,7 @@ version: "2.1"
 
 services:
   zookeeper-1:
-    image: confluentinc/cp-zookeeper:5.3.0
+    image: confluentinc/cp-zookeeper:5.3.1
     container_name: zookeeper-1
     ports:
       - "2181:2181"
@@ -12,7 +12,7 @@ services:
     restart: always
 
   broker-1:
-    image: confluentinc/cp-kafka:5.3.0
+    image: confluentinc/cp-kafka:5.3.1
     container_name: broker-1
     depends_on:
       - zookeeper-1
@@ -34,7 +34,7 @@ services:
     restart: always
 
   broker-2:
-    image: confluentinc/cp-kafka:5.3.0
+    image: confluentinc/cp-kafka:5.3.1
     container_name: broker-2
     depends_on:
       - zookeeper-1
@@ -56,7 +56,7 @@ services:
     restart: always
 
   broker-3:
-    image: confluentinc/cp-kafka:5.3.0
+    image: confluentinc/cp-kafka:5.3.1
     container_name: broker-3
     depends_on:
       - zookeeper-1
@@ -78,7 +78,7 @@ services:
     restart: always
       
   schema-registry-1:
-    image: confluentinc/cp-schema-registry:5.3.0
+    image: confluentinc/cp-schema-registry:5.3.1
     hostname: schema-registry-1
     container_name: schema-registry-1
     depends_on:
@@ -95,7 +95,7 @@ services:
       
       
   connect-1:
-    image: confluentinc/cp-kafka-connect:5.3.0
+    image: confluentinc/cp-kafka-connect:5.3.1
     container_name: connect-1
     depends_on:
       - zookeeper-1
@@ -132,7 +132,7 @@ services:
     restart: always
 
   connect-2:
-    image: confluentinc/cp-kafka-connect:5.3.0
+    image: confluentinc/cp-kafka-connect:5.3.1
     container_name: connect-2
     depends_on:
       - zookeeper-1
@@ -169,8 +169,8 @@ services:
     restart: always
 
   ksqldb-server-1:
-#    image: confluentinc/ksqldb-server:0.6.0
-    image: confluentinc/cp-ksql-server:5.3.1
+    image: confluentinc/ksqldb-server:0.6.0
+#    image: confluentinc/cp-ksql-server:5.3.1
     hostname: ksqldb-server-1
     container_name: ksqldb-server-1
     ports:
@@ -195,8 +195,8 @@ services:
     restart: always
 
   ksqldb-server-2:
-#    image: confluentinc/ksqldb-server:0.6.0
-    image: confluentinc/cp-ksql-server:5.3.1
+    image: confluentinc/ksqldb-server:0.6.0
+#    image: confluentinc/cp-ksql-server:5.3.1
     hostname: ksqldb-server-2
     container_name: ksqldb-server-2
     ports:
