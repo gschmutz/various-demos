@@ -187,8 +187,8 @@ services:
 #      KSQL_APPLICATION_ID: "kafka-demo"
       KSQL_LISTENERS: http://0.0.0.0:8088
       KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry-1:8081"
-      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
-      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
+#      KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
+#      KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
       KSQL_KSQL_SERVICE_ID: "kafka-demo"
     volumes:
       - $PWD/ksql:/etc/ksql-server/ext      
