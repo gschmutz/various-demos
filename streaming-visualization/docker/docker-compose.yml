@@ -180,6 +180,7 @@ services:
       - schema-registry-1
     environment:
       KSQL_CONFIG_DIR: "/etc/ksql-server"
+      KSQL_APPLICATION_ID: "tweet-ksql"
       KSQL_KSQL_EXTENSION_DIR: "/etc/ksql-server/ext"
       KSQL_LOG4J_OPTS: "-Dlog4j.configuration=file:/etc/ksql/log4j-rolling.properties"
       KSQL_BOOTSTRAP_SERVERS: "broker-1:9092,broker-2:9093"
@@ -188,7 +189,8 @@ services:
       KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry-1:8081"
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
-      KSQL_KSQL_CONNECT_URL: connect-1:8083,connect-2:8084
+      KSQL_KSQL_CONNECT_URL: http://connect-1:8083,http://connect-2:8084
+      KSQL_CACHE_MAX_BYTES_BUFFERING: 0
     volumes:
       - $PWD/ksql:/etc/ksql-server/ext      
     restart: always
@@ -205,6 +207,7 @@ services:
       - schema-registry-1
     environment:
       KSQL_CONFIG_DIR: "/etc/ksql-server"
+      KSQL_APPLICATION_ID: "tweet-ksql"
       KSQL_KSQL_EXTENSION_DIR: "/etc/ksql-server/ext"
       KSQL_LOG4J_OPTS: "-Dlog4j.configuration=file:/etc/ksql/log4j-rolling.properties"
       KSQL_BOOTSTRAP_SERVERS: "broker-1:9092,broker-2:9093"
@@ -213,7 +216,8 @@ services:
       KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry-1:8081"
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
-      KSQL_KSQL_CONNECT_URL: connect-1:8083,connect-2:8084
+      KSQL_KSQL_CONNECT_URL: http://connect-1:8083,http://connect-2:8084
+      KSQL_CACHE_MAX_BYTES_BUFFERING: 0
     volumes:
       - $PWD/ksql:/etc/ksql-server/ext      
     restart: always
