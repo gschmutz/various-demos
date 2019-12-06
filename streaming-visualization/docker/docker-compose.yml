@@ -188,7 +188,7 @@ services:
       KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry-1:8081"
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
-      KSQL_KSQL.CONNECT.URL: connect-1:8083, connect-2:8084
+      KSQL_KSQL.CONNECT.URL: connect-1:8083
     volumes:
       - $PWD/ksql:/etc/ksql-server/ext      
     restart: always
@@ -213,7 +213,7 @@ services:
       KSQL_KSQL_SCHEMA_REGISTRY_URL: "http://schema-registry-1:8081"
       KSQL_KSQL_LOGGING_PROCESSING_STREAM_AUTO_CREATE: "true"
       KSQL_KSQL_LOGGING_PROCESSING_TOPIC_AUTO_CREATE: "true"
-      KSQL_KSQL.CONNECT.URL: connect-1:8083, connect-2:8084
+      KSQL_KSQL.CONNECT.URL: connect-1:8083
     volumes:
       - $PWD/ksql:/etc/ksql-server/ext      
     restart: always
