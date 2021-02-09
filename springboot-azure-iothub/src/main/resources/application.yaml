@@ -1,0 +1,32 @@
+spring:
+  cloud:
+    azure:
+      eventhub:
+        # Fill event hub namespace connection string copied from portal
+        connection-string: Endpoint=sb://iothub-ns-gusiothub2-7872028-31d5f7d7f0.servicebus.windows.net/;SharedAccessKeyName=iothubowner;SharedAccessKey=ud0Qd2hfOTX/MKWYKLKN9p56EgxMszOf52sjXgfMl9Q=;EntityPath=gusiothub2
+        # Fill checkpoint storage account name, access key and container
+        checkpoint-storage-account: sagusiothub2
+        checkpoint-access-key: m/qW6DkxseGecAXHmgfqvQ5SXAZdRan6eynjtqa8IeDxuT+FJ1SDiPvi9dHkVXvKYsp4twwcmnq8b2hqAetjAw==
+        checkpoint-container: cntgusiothub2
+    stream:
+      bindings:
+        consume-in-0:
+          destination: gusiothub2
+          group: testconsumer
+        supply-out-0:
+          destination: gusiothub2
+
+      eventhub:
+        bindings:
+          consume-in-0:
+            consumer:
+              checkpoint-mode: MANUAL
+
+      default:
+        producer:
+          errorChannelEnabled: true
+      function:
+        definition: consume;supply;
+      poller:
+        initial-delay: 0
+        fixed-delay: 1000

@@ -1,0 +1,7 @@
+{
+	"host": "gusiothub2.azure-devices.net",
+	"deviceId": "IotSimulator",
+	"accessKey": "CCnkaDhY/CHbiyR51ejwRIxKR9P844MjJobEeeIbNBc=",
+	"clients": 1,
+	"seed": 123456
+}
