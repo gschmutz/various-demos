@@ -107,7 +107,7 @@ The following Avro schema for the message is available in the `src/main/meta` ma
 Using maven we can easily register it in the schema registry using: 
 
 ```
-mvn schema:registry:register
+mvn schema-registry:register
 ```
 
 For that to work the alias `dataplatform` has to be set in `/etc/hosts`.
@@ -132,6 +132,8 @@ Import the StreamSets data flow in `src/streamsets`.
 ## PostgreSQL
 
 ```
+CREATE SCHEMA IF NOT EXISTS sensor_readings;
+
 DROP TABLE IF EXISTS "readings";
 CREATE TABLE "sensor_readings"."readings" (
     "uuid" text NOT NULL,
