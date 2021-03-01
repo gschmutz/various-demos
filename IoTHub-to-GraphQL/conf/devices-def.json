@@ -4,7 +4,7 @@
         "uuid":"",
         "topic":"sensor-reading",
         "partition":"{$uuid}",
-        "sampling":{"type":"fixed", "interval":4000},
+        "sampling":{"type":"fixed", "interval":5000},
         "copy":1,
         "sensors":[
             {"type":"string", "name":"sensorType", "cycle":["temperature"]},
