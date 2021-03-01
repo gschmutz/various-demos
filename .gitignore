@@ -24,3 +24,8 @@ event-driven-microservices/Servers/Pivotal tc Server Developer Edition v4.0-conf
 graph-performance/des-graph-test/dse-graph-test.iml
 graph-performance/des-graph-test/dse-graph-test.ipr
 graph-performance/des-graph-test/dse-graph-test.iws
+.DS_Store
+IoTHub-to-GraphQL/src/java/meta/local-maven-repo/com/trivadis/avro-idl/1.0-SNAPSHOT/maven-metadata-local.xml
+IoTHub-to-GraphQL/src/java/meta/local-maven-repo/com/trivadis/avro-idl/maven-metadata-local.xml
+IoTHub-to-GraphQL/src/java/meta/meta.iml
+IoTHub-to-GraphQL/src/java/meta/meta.iml

@@ -1,0 +1,33 @@
+{
+  "type": "record",
+  "name": "SensorReadingV1",
+  "namespace": "com.trivadis.demo",
+  "doc": "This is a sample Avro schema for a sensor reading",
+  "fields": [
+    {
+      "name": "sensorType",
+      "type": "string"
+    },
+    {
+      "name": "ts",
+      "logicalType": "timestamp",
+      "type": "long"
+    },
+    {
+      "name": "uuid",
+      "type": "string"
+    },
+    {
+      "name": "temp",
+      "type": "double"
+    },
+    {
+      "name": "level",
+      "type": "double"
+    },
+    {
+      "name": "category",
+      "type": "string"
+    }
+  ]
+}
