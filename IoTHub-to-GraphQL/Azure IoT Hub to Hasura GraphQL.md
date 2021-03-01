@@ -131,4 +131,22 @@ Import the StreamSets data flow in `src/streamsets`.
 
 ## PostgreSQL
 
+```
+DROP TABLE IF EXISTS "readings";
+CREATE TABLE "sensor_readings"."readings" (
+    "uuid" text NOT NULL,
+    "ts" timestamptz NOT NULL,
+    "temp" numeric NOT NULL,
+    "level" numeric NOT NULL,
+    "category" text NOT NULL,
+    CONSTRAINT "readings_pkey" PRIMARY KEY ("uuid", "ts")
+) WITH (oids = false);
 
+
+DROP TABLE IF EXISTS "sensor";
+CREATE TABLE "sensor_readings"."sensor" (
+    "uuid" text NOT NULL,
+    "name" text NOT NULL,
+    CONSTRAINT "sensor_pkey" PRIMARY KEY ("uuid")
+) WITH (oids = false);
+```
