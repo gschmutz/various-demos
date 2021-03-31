@@ -69,7 +69,7 @@
          https://github.com/confluentinc/common (see common's pom.xml for kafka.version).
     -->
     <properties>
-		<guava.version>24.1.1-jre</guava.version>
+		<guava.version>29.0-jre</guava.version>
 		<geotools.version>23-SNAPSHOT</geotools.version>
 		<geohash.version>1.3.0</geohash.version>
     
